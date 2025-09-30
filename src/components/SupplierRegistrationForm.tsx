@@ -172,7 +172,7 @@ export default function SupplierRegistrationForm() {
     <div className="min-h-screen gradient-subtle py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 flex justify-start">
-          <img src={logo} alt="הספקיה" className="h-12" />
+          <img src={logo} alt="הספקיה" className="h-36" />
         </div>
 
         <div className="bg-card rounded-2xl shadow-elegant p-8 sm:p-12">
