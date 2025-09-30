@@ -65,6 +65,7 @@ export default function SupplierRegistrationForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [productImagesPreview, setProductImagesPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -104,16 +105,73 @@ export default function SupplierRegistrationForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (validateForm()) {
-      // Here you would typically send the data to your backend
-      console.log("Form submitted:", formData);
-      setSubmitted(true);
-      
-      // Scroll to top to show success message
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      // Prepare file data as base64
+      let logoFileData = null;
+      let logoFileName = null;
+      if (formData.logo) {
+        logoFileData = logoPreview;
+        logoFileName = formData.logo.name;
+      }
+
+      let productImagesFileData = null;
+      let productImagesFileName = null;
+      if (formData.productImages) {
+        productImagesFileData = productImagesPreview;
+        productImagesFileName = formData.productImages.name;
+      }
+
+      // Call the edge function
+      const response = await fetch(
+        "https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            businessName: formData.businessName,
+            contactName: formData.contactName,
+            phone: formData.phone,
+            email: formData.email,
+            about: formData.about,
+            categories: formData.categories,
+            activityAreas: formData.activityAreas,
+            website: formData.website,
+            instagram: formData.instagram,
+            openHours: formData.openHours,
+            deliveryRadius: formData.deliveryRadius,
+            logoFile: logoFileData,
+            logoFileName: logoFileName,
+            productImagesFile: productImagesFileData,
+            productImagesFileName: productImagesFileName,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubmitted(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        throw new Error(result.error || "Submission failed");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setErrors({ submit: "שגיאה בשליחת הטופס. אנא נסה שוב." });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -469,12 +527,18 @@ export default function SupplierRegistrationForm() {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-6">
+            <div className="pt-6 space-y-4">
+              {errors.submit && (
+                <div className="bg-destructive/10 border border-destructive rounded-lg p-4 text-center">
+                  <p className="text-destructive font-medium">{errors.submit}</p>
+                </div>
+              )}
               <Button
                 type="submit"
-                className="w-full h-14 text-xl font-bold gradient-primary hover:shadow-glow transition-smooth"
+                disabled={isSubmitting}
+                className="w-full h-14 text-xl font-bold gradient-primary hover:shadow-glow transition-smooth disabled:opacity-50"
               >
-                שליחת הטופס והצטרפות לאתר
+                {isSubmitting ? "שולח..." : "שליחת הטופס והצטרפות לאתר"}
               </Button>
             </div>
 

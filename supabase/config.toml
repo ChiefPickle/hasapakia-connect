@@ -1,1 +1,4 @@
 project_id = "rcvfgxtifjhfzdgodiel"
+
+[functions.submit-supplier]
+verify_jwt = false
