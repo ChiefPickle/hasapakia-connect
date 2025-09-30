@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, CheckCircle2 } from "lucide-react";
-import logo from "@/assets/hasapakia-logo.png";
+import logo from "@/assets/hasapakia-logo-new.png";
 import backgroundImage from "@/assets/supplier-bg.jpg";
 
 interface FormData {
@@ -276,8 +276,8 @@ export default function SupplierRegistrationForm() {
       <div className="absolute inset-0 z-0 gradient-subtle opacity-90" />
       
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="mb-8 flex justify-start">
-          <img src={logo} alt="הספקיה" className="h-36" />
+        <div className="absolute top-4 left-4 z-20">
+          <img src={logo} alt="הספקיה" className="h-20 sm:h-24 mix-blend-multiply dark:mix-blend-screen" />
         </div>
 
         <div className="bg-card rounded-2xl shadow-elegant p-8 sm:p-12">
