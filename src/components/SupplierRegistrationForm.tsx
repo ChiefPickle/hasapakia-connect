@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, CheckCircle2 } from "lucide-react";
 import logo from "@/assets/hasapakia-logo.png";
+import backgroundImage from "@/assets/supplier-bg.jpg";
 
 interface FormData {
   businessName: string;
@@ -216,8 +217,24 @@ export default function SupplierRegistrationForm() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen gradient-subtle py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Background Image with Blur and Fade */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'blur(8px)',
+            opacity: 0.15,
+          }}
+        />
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 z-0 gradient-subtle opacity-90" />
+        
+        <div className="max-w-2xl mx-auto relative z-10">
           <div className="bg-card rounded-2xl shadow-elegant p-8 sm:p-12 text-center">
             <div className="mb-6 flex justify-center">
               <CheckCircle2 className="w-20 h-20 text-primary" />
@@ -241,8 +258,24 @@ export default function SupplierRegistrationForm() {
   }
 
   return (
-    <div className="min-h-screen gradient-subtle py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Background Image with Blur and Fade */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: 'blur(8px)',
+          opacity: 0.15,
+        }}
+      />
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 z-0 gradient-subtle opacity-90" />
+      
+      <div className="max-w-4xl mx-auto relative z-10">
         <div className="mb-8 flex justify-start">
           <img src={logo} alt="הספקיה" className="h-36" />
         </div>

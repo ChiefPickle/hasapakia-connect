@@ -8,40 +8,40 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 152 40% 98%;
-    --foreground: 158 40% 10%;
+    --background: 270 20% 98%;
+    --foreground: 270 15% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 158 40% 10%;
+    --card-foreground: 270 15% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 158 40% 10%;
+    --popover-foreground: 270 15% 10%;
 
-    --primary: 160 84% 39%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 152 30% 90%;
-    --secondary-foreground: 158 40% 10%;
+    --secondary: 270 20% 95%;
+    --secondary-foreground: 270 15% 10%;
 
-    --muted: 152 30% 95%;
-    --muted-foreground: 158 25% 40%;
+    --muted: 270 20% 96%;
+    --muted-foreground: 270 15% 45%;
 
-    --accent: 167 80% 42%;
+    --accent: 280 85% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 152 30% 88%;
-    --input: 152 30% 88%;
-    --ring: 160 84% 39%;
+    --border: 270 20% 92%;
+    --input: 270 20% 92%;
+    --ring: 262 83% 58%;
 
     --radius: 0.75rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(160, 84%, 39%), hsl(167, 80%, 42%));
-    --gradient-subtle: linear-gradient(180deg, hsl(152, 40%, 98%), hsl(152, 30%, 95%));
-    --shadow-elegant: 0 10px 30px -10px hsl(160 84% 39% / 0.15);
-    --shadow-glow: 0 0 40px hsl(167 80% 42% / 0.2);
+    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(280, 85%, 60%));
+    --gradient-subtle: linear-gradient(180deg, hsl(270, 20%, 98%), hsl(270, 20%, 96%));
+    --shadow-elegant: 0 10px 30px -10px hsl(262 83% 58% / 0.15);
+    --shadow-glow: 0 0 40px hsl(280 85% 60% / 0.25);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
