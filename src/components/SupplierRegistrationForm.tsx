@@ -63,6 +63,8 @@ export default function SupplierRegistrationForm() {
 
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [productImagesPreview, setProductImagesPreview] = useState<string | null>(null);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -135,10 +137,22 @@ export default function SupplierRegistrationForm() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "productImages") => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
       setFormData((prev) => ({
         ...prev,
-        [field]: e.target.files![0],
+        [field]: file,
       }));
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (field === "logo") {
+          setLogoPreview(reader.result as string);
+        } else {
+          setProductImagesPreview(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -398,11 +412,21 @@ export default function SupplierRegistrationForm() {
                   className="hidden"
                 />
                 <label htmlFor="logo" className="cursor-pointer">
-                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-base text-muted-foreground mb-2">
-                    {formData.logo ? formData.logo.name : "לחץ להעלאת קובץ או גרור לכאן"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
+                  {logoPreview ? (
+                    <div className="space-y-4">
+                      <img src={logoPreview} alt="Logo preview" className="mx-auto max-h-48 rounded-lg" />
+                      <p className="text-base text-muted-foreground">{formData.logo?.name}</p>
+                      <p className="text-sm text-primary">לחץ להחלפת התמונה</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-base text-muted-foreground mb-2">
+                        לחץ להעלאת קובץ או גרור לכאן
+                      </p>
+                      <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
+                    </>
+                  )}
                 </label>
               </div>
               {errors.logo && <p className="text-destructive text-sm">{errors.logo}</p>}
@@ -422,13 +446,21 @@ export default function SupplierRegistrationForm() {
                   className="hidden"
                 />
                 <label htmlFor="productImages" className="cursor-pointer">
-                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-base text-muted-foreground mb-2">
-                    {formData.productImages
-                      ? formData.productImages.name
-                      : "לחץ להעלאת קובץ או גרור לכאן"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
+                  {productImagesPreview ? (
+                    <div className="space-y-4">
+                      <img src={productImagesPreview} alt="Product images preview" className="mx-auto max-h-48 rounded-lg" />
+                      <p className="text-base text-muted-foreground">{formData.productImages?.name}</p>
+                      <p className="text-sm text-primary">לחץ להחלפת התמונה</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-base text-muted-foreground mb-2">
+                        לחץ להעלאת קובץ או גרור לכאן
+                      </p>
+                      <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
+                    </>
+                  )}
                 </label>
               </div>
               {errors.productImages && (
