@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, CheckCircle2 } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/hasapakia-logo.png";
 
 interface FormData {
   businessName: string;
