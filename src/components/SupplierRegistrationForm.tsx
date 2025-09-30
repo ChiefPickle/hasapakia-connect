@@ -1,16 +1,12 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, CheckCircle2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/hasapakia-logo.png";
 import backgroundImage from "@/assets/supplier-bg.jpg";
-import type { User } from "@supabase/supabase-js";
 
 interface FormData {
   businessName: string;
@@ -50,11 +46,6 @@ const categories = [
 const activityAreas = ["צפון", "מרכז", "דרום", "שפלה", "כל הארץ"];
 
 export default function SupplierRegistrationForm() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
   const [formData, setFormData] = useState<FormData>({
     businessName: "",
     contactName: "",
@@ -76,49 +67,6 @@ export default function SupplierRegistrationForm() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [productImagesPreview, setProductImagesPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "נדרשת התחברות",
-          description: "עליך להתחבר כדי לרשום עסק",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      setIsCheckingAuth(false);
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate, toast]);
-
-  // Show loading while checking auth
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">טוען...</p>
-        </div>
-      </div>
-    );
-  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -184,57 +132,45 @@ export default function SupplierRegistrationForm() {
         productImagesFileName = formData.productImages.name;
       }
 
-      // Call the edge function with user authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
+      // Call the edge function
+      const response = await fetch(
+        "https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            businessName: formData.businessName,
+            contactName: formData.contactName,
+            phone: formData.phone,
+            email: formData.email,
+            about: formData.about,
+            categories: formData.categories,
+            activityAreas: formData.activityAreas,
+            website: formData.website,
+            instagram: formData.instagram,
+            openHours: formData.openHours,
+            deliveryRadius: formData.deliveryRadius,
+            logoFile: logoFileData,
+            logoFileName: logoFileName,
+            productImagesFile: productImagesFileData,
+            productImagesFileName: productImagesFileName,
+          }),
+        }
+      );
 
-      const response = await supabase.functions.invoke("submit-supplier", {
-        body: {
-          businessName: formData.businessName,
-          contactName: formData.contactName,
-          phone: formData.phone,
-          email: formData.email,
-          about: formData.about,
-          categories: formData.categories,
-          activityAreas: formData.activityAreas,
-          website: formData.website,
-          instagram: formData.instagram,
-          openHours: formData.openHours,
-          deliveryRadius: formData.deliveryRadius,
-          logoFile: logoFileData,
-          logoFileName: logoFileName,
-          productImagesFile: productImagesFileData,
-          productImagesFileName: productImagesFileName,
-          userId: session.user.id,
-        },
-      });
+      const result = await response.json();
 
-      if (response.error) {
-        throw new Error(response.error.message || "Submission failed");
-      }
-
-      const result = response.data;
-
-      if (result?.success) {
+      if (result.success) {
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        throw new Error(result?.error || "Submission failed");
+        throw new Error(result.error || "Submission failed");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting form:", error);
-      const errorMessage = error.message?.includes("not authenticated") 
-        ? "נא להתחבר מחדש"
-        : error.message || "שגיאה בשליחת הטופס. אנא נסה שוב.";
-      
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: errorMessage,
-      });
-      setErrors({ submit: errorMessage });
+      setErrors({ submit: "שגיאה בשליחת הטופס. אנא נסה שוב." });
     } finally {
       setIsSubmitting(false);
     }
@@ -340,19 +276,8 @@ export default function SupplierRegistrationForm() {
       <div className="absolute inset-0 z-0 gradient-subtle opacity-90" />
       
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex justify-start">
           <img src={logo} alt="הספקיה" className="h-36" />
-          {user && (
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate("/auth");
-              }}
-            >
-              התנתקות
-            </Button>
-          )}
         </div>
 
         <div className="bg-card rounded-2xl shadow-elegant p-8 sm:p-12">
