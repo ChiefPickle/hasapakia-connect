@@ -31,6 +31,7 @@ export type Database = {
           phone: string
           product_images_url: string | null
           status: string
+          user_id: string | null
           website: string | null
         }
         Insert: {
@@ -49,6 +50,7 @@ export type Database = {
           phone: string
           product_images_url?: string | null
           status?: string
+          user_id?: string | null
           website?: string | null
         }
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           phone?: string
           product_images_url?: string | null
           status?: string
+          user_id?: string | null
           website?: string | null
         }
         Relationships: []

@@ -25,6 +25,7 @@ const supplierSchema = z.object({
   logoFileName: z.string().optional(),
   productImagesFile: z.string().optional(),
   productImagesFileName: z.string().optional(),
+  userId: z.string().uuid("Invalid user ID"),
 });
 
 // Allowed MIME types for images
@@ -102,6 +103,24 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify authentication from Supabase
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Authentication required" 
+        }),
+        {
+          status: 401,
+          headers: { 
+            "Content-Type": "application/json", 
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+
     // Rate limiting check
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     if (!checkRateLimit(ip)) {
@@ -233,7 +252,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Product images uploaded successfully:", productImagesUrl);
     }
 
-    // Insert supplier data into database
+    // Insert supplier data into database with user_id
     const { data: supplierData, error: dbError } = await supabase
       .from("suppliers")
       .insert({
@@ -250,7 +269,8 @@ const handler = async (req: Request): Promise<Response> => {
         delivery_radius: formData.deliveryRadius || null,
         logo_url: logoUrl,
         product_images_url: productImagesUrl,
-        status: "pending"
+        status: "pending",
+        user_id: formData.userId
       })
       .select()
       .single();
