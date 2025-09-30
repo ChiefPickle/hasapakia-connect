@@ -180,12 +180,12 @@ export default function SupplierRegistrationForm() {
             <h1 className="text-4xl font-bold text-foreground mb-6">
               ברוכים הבאים לאתר הספקיה
             </h1>
-            <div className="space-y-4 text-lg text-muted-foreground max-w-3xl mx-auto">
-              <p>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</p>
-              <p>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</p>
-              <p className="font-semibold text-primary text-xl">רוצים להצטרף ולהופיע באתר??</p>
-              <p>כל שעליכם לעשות הוא למלא מספר פרטים בסיסיים וזהו.</p>
-            </div>
+            <div className="space-y-4 text-lg text-muted-foreground max-w-3xl mx-auto text-right">
+  <p>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</p>
+  <p>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</p>
+  <p className="font-semibold text-primary text-xl">רוצים להצטרף ולהופיע באתר??</p>
+  <p>כל שעליכם לעשות הוא למלא מספר פרטים בסיסיים וזהו.</p>
+</div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
