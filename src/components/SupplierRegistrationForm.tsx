@@ -334,10 +334,10 @@ export default function SupplierRegistrationForm() {
               </Label>
               <Input
                 id="website"
-                type="url"
+                type="text"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                placeholder="https://example.com"
+                placeholder="www.example.com"
                 className="text-lg h-12"
               />
             </div>
