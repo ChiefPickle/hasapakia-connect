@@ -18,8 +18,7 @@ interface FormData {
   activityAreas: string[];
   website: string;
   instagram: string;
-  openHours: string;
-  deliveryRadius: string;
+  mainAddress: string;
   logo: File | null;
   productImages: File | null;
 }
@@ -56,8 +55,7 @@ export default function SupplierRegistrationForm() {
     activityAreas: [],
     website: "",
     instagram: "",
-    openHours: "",
-    deliveryRadius: "",
+    mainAddress: "",
     logo: null,
     productImages: null,
   });
@@ -150,8 +148,7 @@ export default function SupplierRegistrationForm() {
             activityAreas: formData.activityAreas,
             website: formData.website,
             instagram: formData.instagram,
-            openHours: formData.openHours,
-            deliveryRadius: formData.deliveryRadius,
+            mainAddress: formData.mainAddress,
             logoFile: logoFileData,
             logoFileName: logoFileName,
             productImagesFile: productImagesFileData,
@@ -343,6 +340,20 @@ export default function SupplierRegistrationForm() {
               {errors.phone && <p className="text-destructive text-sm">{errors.phone}</p>}
             </div>
 
+            {/* Main Address */}
+            <div className="space-y-2">
+              <Label htmlFor="mainAddress" className="text-lg">
+                כתובת מרכזית
+              </Label>
+              <Input
+                id="mainAddress"
+                type="text"
+                value={formData.mainAddress}
+                onChange={(e) => setFormData({ ...formData, mainAddress: e.target.value })}
+                className="text-lg h-12"
+              />
+            </div>
+
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-lg">
@@ -457,34 +468,6 @@ export default function SupplierRegistrationForm() {
                 value={formData.instagram}
                 onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
                 placeholder="@username"
-                className="text-lg h-12"
-              />
-            </div>
-
-            {/* Open Hours */}
-            <div className="space-y-2">
-              <Label htmlFor="openHours" className="text-lg">
-                שעות פתיחה
-              </Label>
-              <Input
-                id="openHours"
-                value={formData.openHours}
-                onChange={(e) => setFormData({ ...formData, openHours: e.target.value })}
-                placeholder="לדוגמה: א-ה 08:00-17:00"
-                className="text-lg h-12"
-              />
-            </div>
-
-            {/* Delivery Radius */}
-            <div className="space-y-2">
-              <Label htmlFor="deliveryRadius" className="text-lg">
-                רדיוס משלוח
-              </Label>
-              <Input
-                id="deliveryRadius"
-                value={formData.deliveryRadius}
-                onChange={(e) => setFormData({ ...formData, deliveryRadius: e.target.value })}
-                placeholder="לדוגמה: 50 קמ מהמפעל"
                 className="text-lg h-12"
               />
             </div>

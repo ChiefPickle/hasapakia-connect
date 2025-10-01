@@ -19,8 +19,7 @@ const supplierSchema = z.object({
   activityAreas: z.array(z.string()).min(1, "At least one activity area required").max(20, "Too many activity areas"),
   website: z.string().trim().max(500, "Website URL too long").optional().or(z.literal("")),
   instagram: z.string().trim().max(500, "Instagram URL too long").optional().or(z.literal("")),
-  openHours: z.string().trim().max(500, "Open hours text too long").optional().or(z.literal("")),
-  deliveryRadius: z.string().trim().max(200, "Delivery radius text too long").optional().or(z.literal("")),
+  mainAddress: z.string().trim().max(500, "Main address text too long").optional().or(z.literal("")),
   logoFile: z.string().optional(),
   logoFileName: z.string().optional(),
   productImagesFile: z.string().optional(),
@@ -246,8 +245,7 @@ const handler = async (req: Request): Promise<Response> => {
         activity_areas: formData.activityAreas,
         website: formData.website || null,
         instagram: formData.instagram || null,
-        open_hours: formData.openHours || null,
-        delivery_radius: formData.deliveryRadius || null,
+        main_address: formData.mainAddress || null,
         logo_url: logoUrl,
         product_images_url: productImagesUrl,
         status: "pending"
@@ -275,8 +273,7 @@ const handler = async (req: Request): Promise<Response> => {
         <li><strong>אזורי פעילות:</strong> ${formData.activityAreas.map(a => escapeHtml(a)).join(", ")}</li>
         ${formData.website ? `<li><strong>אתר:</strong> ${escapeHtml(formData.website)}</li>` : ""}
         ${formData.instagram ? `<li><strong>אינסטגרם:</strong> ${escapeHtml(formData.instagram)}</li>` : ""}
-        ${formData.openHours ? `<li><strong>שעות פתיחה:</strong> ${escapeHtml(formData.openHours)}</li>` : ""}
-        ${formData.deliveryRadius ? `<li><strong>רדיוס משלוח:</strong> ${escapeHtml(formData.deliveryRadius)}</li>` : ""}
+        ${formData.mainAddress ? `<li><strong>כתובת מרכזית:</strong> ${escapeHtml(formData.mainAddress)}</li>` : ""}
       </ul>
       <h2>אודות העסק:</h2>
       <p>${escapeHtml(formData.about)}</p>
