@@ -529,7 +529,7 @@ export default function SupplierRegistrationForm() {
                           productCatalogType: value as "text" | "file" | "drive" | "",
                         })
                       }
-                      className="space-y-4"
+                      className="space-y-4 text-right"
                     >
                       <div className="flex items-start gap-3">
                         <RadioGroupItem value="text" id="catalog-text" className="mt-1" />
