@@ -20,6 +20,7 @@ export type Database = {
           activity_areas: string[]
           business_name: string
           categories: string[]
+          company_id: string | null
           contact_name: string
           created_at: string
           email: string
@@ -41,6 +42,7 @@ export type Database = {
           activity_areas: string[]
           business_name: string
           categories: string[]
+          company_id?: string | null
           contact_name: string
           created_at?: string
           email: string
@@ -62,6 +64,7 @@ export type Database = {
           activity_areas?: string[]
           business_name?: string
           categories?: string[]
+          company_id?: string | null
           contact_name?: string
           created_at?: string
           email?: string
