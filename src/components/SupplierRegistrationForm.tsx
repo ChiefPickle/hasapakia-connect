@@ -3,11 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Upload, CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { FileUploadZone } from "@/components/ui/file-upload-zone";
+import { useToast } from "@/hooks/use-toast";
+import { CheckCircle2, HelpCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import logo from "@/assets/hasapakia-logo.png";
 import backgroundImage from "@/assets/supplier-bg.jpg";
+
 interface FormData {
   businessName: string;
   contactName: string;
@@ -19,16 +24,37 @@ interface FormData {
   website: string;
   instagram: string;
   mainAddress: string;
-  logo: File | null;
-  productImages: File | null;
-  productCatalogType: "text" | "file" | "";
+  logo: FileList | null;
+  productImages: FileList | null;
+  productCatalogType: "text" | "file" | "drive" | "";
   productCatalogText: string;
-  productCatalogFile: File | null;
+  productCatalogFile: FileList | null;
   productCatalogDriveLink: string;
 }
-const categories = ["חומרי גלם יבשים", "ירקות, ירוקים, פירות", "בשר, עוף, דגים", "גבינות וחלב", "משקאות, מיצים, שייקים", "קפה ותה", "אלכוהול, יין, בירות", "קונדיטוריה, אפייה, גלידה", "לחמים ומאפים", "מתוקים וקינוחים", "מוצרי מעדניה", "אוכל מוכן וקייטרינג", "כלי אריזה וחומרי ניקוי", "ציוד מטבח ובר", "כלי בית", "אחר"];
+
+const categories = [
+  "חומרי גלם יבשים",
+  "ירקות, ירוקים, פירות",
+  "בשר, עוף, דגים",
+  "גבינות וחלב",
+  "משקאות, מיצים, שייקים",
+  "קפה ותה",
+  "אלכוהול, יין, בירות",
+  "קונדיטוריה, אפייה, גלידה",
+  "לחמים ומאפים",
+  "מתוקים וקינוחים",
+  "מוצרי מעדניה",
+  "אוכל מוכן וקייטרינג",
+  "כלי אריזה וחומרי ניקוי",
+  "ציוד מטבח ובר",
+  "כלי בית",
+  "אחר",
+];
+
 const activityAreas = ["צפון", "מרכז", "דרום", "שפלה", "כל הארץ"];
+
 export default function SupplierRegistrationForm() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     businessName: "",
     contactName: "",
@@ -45,498 +71,550 @@ export default function SupplierRegistrationForm() {
     productCatalogType: "",
     productCatalogText: "",
     productCatalogFile: null,
-    productCatalogDriveLink: ""
+    productCatalogDriveLink: "",
   });
+
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [productImagesPreview, setProductImagesPreview] = useState<string | null>(null);
-  const [productCatalogPreview, setProductCatalogPreview] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [productImagesPreview, setProductImagesPreview] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.businessName.trim()) {
-      newErrors.businessName = "שדה חובה";
-    }
-    if (!formData.contactName.trim()) {
-      newErrors.contactName = "שדה חובה";
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "שדה חובה";
-    }
+
+    if (!formData.businessName.trim()) newErrors.businessName = "שדה חובה";
+    if (!formData.contactName.trim()) newErrors.contactName = "שדה חובה";
+    if (!formData.phone.trim()) newErrors.phone = "שדה חובה";
     if (!formData.email.trim()) {
       newErrors.email = "שדה חובה";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "כתובת אימייל לא תקינה";
     }
-    if (!formData.about.trim()) {
-      newErrors.about = "שדה חובה";
-    }
-    if (!formData.mainAddress.trim()) {
-      newErrors.mainAddress = "שדה חובה";
-    }
-    if (formData.categories.length === 0) {
-      newErrors.categories = "יש לבחור לפחות קטגוריה אחת";
-    }
-    if (formData.activityAreas.length === 0) {
-      newErrors.activityAreas = "יש לבחור לפחות איזור פעילות אחד";
-    }
-    if (formData.logo && formData.logo.size > 10 * 1024 * 1024) {
+    if (!formData.about.trim()) newErrors.about = "שדה חובה";
+    if (!formData.mainAddress.trim()) newErrors.mainAddress = "שדה חובה";
+    if (formData.categories.length === 0) newErrors.categories = "יש לבחור לפחות קטגוריה אחת";
+    if (formData.activityAreas.length === 0) newErrors.activityAreas = "יש לבחור לפחות איזור פעילות אחד";
+
+    if (formData.logo && formData.logo[0] && formData.logo[0].size > 10 * 1024 * 1024) {
       newErrors.logo = "גודל הקובץ חורג מ-10MB";
     }
-    if (formData.productImages && formData.productImages.size > 10 * 1024 * 1024) {
+    if (formData.productImages && formData.productImages[0] && formData.productImages[0].size > 10 * 1024 * 1024) {
       newErrors.productImages = "גודל הקובץ חורג מ-10MB";
     }
-    if (formData.productCatalogFile && formData.productCatalogFile.size > 10 * 1024 * 1024) {
+    if (formData.productCatalogFile && formData.productCatalogFile[0] && formData.productCatalogFile[0].size > 10 * 1024 * 1024) {
       newErrors.productCatalogFile = "גודל הקובץ חורג מ-10MB";
     }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
+      toast({
+        title: "שגיאה בטופס",
+        description: "אנא מלא את כל השדות החובה",
+        variant: "destructive",
+      });
       return;
     }
+
     setIsSubmitting(true);
     setErrors({});
+
     try {
       // Prepare file data as base64
       let logoFileData = null;
       let logoFileName = null;
-      if (formData.logo) {
+      if (formData.logo && formData.logo[0]) {
         logoFileData = logoPreview;
-        logoFileName = formData.logo.name;
+        logoFileName = formData.logo[0].name;
       }
+
       let productImagesFileData = null;
       let productImagesFileName = null;
-      if (formData.productImages) {
-        productImagesFileData = productImagesPreview;
-        productImagesFileName = formData.productImages.name;
+      if (formData.productImages && formData.productImages[0]) {
+        productImagesFileData = productImagesPreview[0];
+        productImagesFileName = formData.productImages[0].name;
       }
+
       let productCatalogFileData = null;
       let productCatalogFileName = null;
-      if (formData.productCatalogFile) {
-        productCatalogFileData = productCatalogPreview;
-        productCatalogFileName = formData.productCatalogFile.name;
+      if (formData.productCatalogFile && formData.productCatalogFile[0]) {
+        const reader = new FileReader();
+        const fileData = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(formData.productCatalogFile![0]);
+        });
+        productCatalogFileData = fileData;
+        productCatalogFileName = formData.productCatalogFile[0].name;
       }
 
       // Call the edge function
-      const response = await fetch("https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          businessName: formData.businessName,
-          contactName: formData.contactName,
-          phone: formData.phone,
-          email: formData.email,
-          about: formData.about,
-          categories: formData.categories,
-          activityAreas: formData.activityAreas,
-          website: formData.website,
-          instagram: formData.instagram,
-          mainAddress: formData.mainAddress,
-          logoFile: logoFileData,
-          logoFileName: logoFileName,
-          productImagesFile: productImagesFileData,
-          productImagesFileName: productImagesFileName,
-          productCatalogType: formData.productCatalogType,
-          productCatalogText: formData.productCatalogText,
-          productCatalogFile: productCatalogFileData,
-          productCatalogFileName: productCatalogFileName,
-          productCatalogDriveLink: formData.productCatalogDriveLink
-        })
-      });
+      const response = await fetch(
+        "https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            businessName: formData.businessName,
+            contactName: formData.contactName,
+            phone: formData.phone,
+            email: formData.email,
+            about: formData.about,
+            categories: formData.categories,
+            activityAreas: formData.activityAreas,
+            website: formData.website,
+            instagram: formData.instagram,
+            mainAddress: formData.mainAddress,
+            logoFile: logoFileData,
+            logoFileName: logoFileName,
+            productImagesFile: productImagesFileData,
+            productImagesFileName: productImagesFileName,
+            productCatalogType: formData.productCatalogType,
+            productCatalogText: formData.productCatalogText,
+            productCatalogFile: productCatalogFileData,
+            productCatalogFileName: productCatalogFileName,
+            productCatalogDriveLink: formData.productCatalogDriveLink,
+          }),
+        }
+      );
+
       const result = await response.json();
+
       if (result.success) {
         setSubmitted(true);
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"
-        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         throw new Error(result.error || "Submission failed");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      setErrors({
-        submit: "שגיאה בשליחת הטופס. אנא נסה שוב."
+      toast({
+        title: "שגיאה",
+        description: "שגיאה בשליחת הטופס. אנא נסה שוב.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  const handleCategoryChange = (category: string) => {
-    setFormData(prev => ({
-      ...prev,
-      categories: prev.categories.includes(category) ? prev.categories.filter(c => c !== category) : [...prev.categories, category]
-    }));
-  };
-  const handleActivityAreaChange = (area: string) => {
-    setFormData(prev => ({
-      ...prev,
-      activityAreas: prev.activityAreas.includes(area) ? prev.activityAreas.filter(a => a !== area) : [...prev.activityAreas, area]
-    }));
-  };
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "productImages" | "productCatalogFile") => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setFormData(prev => ({
-        ...prev,
-        [field]: file
-      }));
 
-      // Create preview URL
+  const handleLogoChange = (files: FileList | null) => {
+    setFormData((prev) => ({ ...prev, logo: files }));
+    if (files && files[0]) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (field === "logo") {
-          setLogoPreview(reader.result as string);
-        } else if (field === "productImages") {
-          setProductImagesPreview(reader.result as string);
-        } else {
-          setProductCatalogPreview(reader.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      reader.onloadend = () => setLogoPreview(reader.result as string);
+      reader.readAsDataURL(files[0]);
+    } else {
+      setLogoPreview("");
     }
   };
+
+  const handleProductImagesChange = (files: FileList | null) => {
+    setFormData((prev) => ({ ...prev, productImages: files }));
+    if (files && files[0]) {
+      const reader = new FileReader();
+      reader.onloadend = () => setProductImagesPreview([reader.result as string]);
+      reader.readAsDataURL(files[0]);
+    } else {
+      setProductImagesPreview([]);
+    }
+  };
+
   if (submitted) {
-    return <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Background Image with Blur and Fade */}
-        <div className="absolute inset-0 z-0" style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        filter: 'blur(8px)',
-        opacity: 0.15
-      }} />
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 z-0 gradient-subtle opacity-90" />
-        
+    return (
+      <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            filter: "blur(8px)",
+            opacity: 0.15,
+          }}
+        />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/90 to-background/70" />
+
         <div className="max-w-2xl mx-auto relative z-10">
-          <div className="bg-card rounded-2xl shadow-elegant p-8 sm:p-12 text-center">
-            <div className="mb-6 flex justify-center">
-              <CheckCircle2 className="w-20 h-20 text-primary" />
-            </div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">תודה על ההרשמה!</h2>
-            <p className="text-xl text-muted-foreground mb-6">
-              הפרטים שלכם נקלטו בהצלחה במערכת
-            </p>
-            <p className="text-lg text-muted-foreground mb-8">
-              אימייל אישור נשלח אליכם ואלינו
-            </p>
-            <div className="bg-secondary/50 rounded-xl p-6 border border-border">
-              <p className="text-foreground font-medium">
-                נבדוק את הפרטים ונחזור אליכם בהקדם. העסק שלכם יופיע באתר תוך 2-3 ימי עסקים
+          <Card className="border-2">
+            <CardContent className="p-8 sm:p-12 text-center">
+              <div className="mb-6 flex justify-center">
+                <CheckCircle2 className="w-20 h-20 text-primary" />
+              </div>
+              <h2 className="text-3xl font-bold mb-4">תודה על ההרשמה!</h2>
+              <p className="text-xl text-muted-foreground mb-6">
+                הפרטים שלכם נקלטו בהצלחה במערכת
               </p>
-            </div>
-          </div>
-        </div>
-      </div>;
-  }
-  return <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Background Image with Blur and Fade */}
-      <div className="absolute inset-0 z-0" style={{
-      backgroundImage: `url(${backgroundImage})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      filter: 'blur(8px)',
-      opacity: 0.15
-    }} />
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 z-0 gradient-subtle opacity-90" />
-      
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div className="mb-8 flex justify-start">
-          <img src={logo} alt="הספקיה" className="h-36" />
-        </div>
-
-        <div className="bg-card rounded-2xl shadow-elegant p-8 sm:p-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-6">
-              ברוכים הבאים לאתר הספקיה
-            </h1>
-            <div className="space-y-4 text-lg text-muted-foreground max-w-3xl mx-auto text-right">
-  <p>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</p>
-  <p>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</p>
-  <p className="font-semibold text-primary text-xl">רוצים להצטרף ולהופיע באתר??</p>
-  <p>כל שעליכם לעשות הוא למלא מספר פרטים בסיסיים וזהו.</p>
-          </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Business Name */}
-            <div className="space-y-2">
-              <Label htmlFor="businessName" className="text-lg">
-                שם העסק <span className="text-destructive">*</span>
-              </Label>
-              <Input id="businessName" value={formData.businessName} onChange={e => setFormData({
-              ...formData,
-              businessName: e.target.value
-            })} className="text-lg h-12" />
-              {errors.businessName && <p className="text-destructive text-sm">{errors.businessName}</p>}
-            </div>
-
-            {/* Contact Name */}
-            <div className="space-y-2">
-              <Label htmlFor="contactName" className="text-lg">
-                שם איש קשר <span className="text-destructive">*</span>
-              </Label>
-              <Input id="contactName" value={formData.contactName} onChange={e => setFormData({
-              ...formData,
-              contactName: e.target.value
-            })} className="text-lg h-12" />
-              {errors.contactName && <p className="text-destructive text-sm">{errors.contactName}</p>}
-            </div>
-
-            {/* Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-lg">
-                טלפון <span className="text-destructive">*</span>
-              </Label>
-              <Input id="phone" type="tel" value={formData.phone} onChange={e => setFormData({
-              ...formData,
-              phone: e.target.value
-            })} className="text-lg h-12" />
-              {errors.phone && <p className="text-destructive text-sm">{errors.phone}</p>}
-            </div>
-
-            {/* Main Address */}
-            <div className="space-y-2">
-              <Label htmlFor="mainAddress" className="text-lg">
-                כתובת מרכזית <span className="text-destructive">*</span>
-              </Label>
-              <Input id="mainAddress" type="text" value={formData.mainAddress} onChange={e => setFormData({
-              ...formData,
-              mainAddress: e.target.value
-            })} className="text-lg h-12" />
-              {errors.mainAddress && <p className="text-destructive text-sm">{errors.mainAddress}</p>}
-            </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-lg">
-                Email <span className="text-destructive">*</span>
-              </Label>
-              <Input id="email" type="email" value={formData.email} onChange={e => setFormData({
-              ...formData,
-              email: e.target.value
-            })} className="text-lg h-12" />
-              {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
-            </div>
-
-            {/* About */}
-            <div className="space-y-2">
-              <Label htmlFor="about" className="text-lg">
-                אודות העסק <span className="text-destructive">*</span>
-              </Label>
-              <Textarea id="about" value={formData.about} onChange={e => setFormData({
-              ...formData,
-              about: e.target.value
-            })} placeholder="מה העסק מספק, כמה שנות פעילות, מי הלקוחות שלכם, מה החוזקות שלכם וכו'" className="min-h-32 text-lg" />
-              {errors.about && <p className="text-destructive text-sm">{errors.about}</p>}
-            </div>
-
-            {/* Categories */}
-            <div className="space-y-4">
-              <Label className="text-lg">
-                קטגוריה <span className="text-destructive">*</span>
-                <span className="text-sm text-muted-foreground mr-2">(ניתן לבחור יותר מאחת)</span>
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {categories.map(category => <div key={category} className="flex items-center space-x-2 space-x-reverse">
-                    <Checkbox id={`category-${category}`} checked={formData.categories.includes(category)} onCheckedChange={() => handleCategoryChange(category)} className="data-[state=checked]:bg-primary" />
-                    <label htmlFor={`category-${category}`} className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
-                      {category}
-                    </label>
-                  </div>)}
-              </div>
-              {errors.categories && <p className="text-destructive text-sm">{errors.categories}</p>}
-            </div>
-
-            {/* Activity Areas */}
-            <div className="space-y-4">
-              <Label className="text-lg">
-                איזור פעילות <span className="text-destructive">*</span>
-                <span className="text-sm text-muted-foreground mr-2">(ניתן לבחור יותר מאחד)</span>
-              </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {activityAreas.map(area => <div key={area} className="flex items-center space-x-2 space-x-reverse">
-                    <Checkbox id={`area-${area}`} checked={formData.activityAreas.includes(area)} onCheckedChange={() => handleActivityAreaChange(area)} className="data-[state=checked]:bg-primary" />
-                    <label htmlFor={`area-${area}`} className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
-                      {area}
-                    </label>
-                  </div>)}
-              </div>
-              {errors.activityAreas && <p className="text-destructive text-sm">{errors.activityAreas}</p>}
-            </div>
-
-            {/* Website */}
-            <div className="space-y-2">
-              <Label htmlFor="website" className="text-lg">
-                אתר אינטרנט
-              </Label>
-              <Input id="website" type="text" value={formData.website} onChange={e => setFormData({
-              ...formData,
-              website: e.target.value
-            })} placeholder="www.example.com" className="text-lg h-12" />
-            </div>
-
-            {/* Instagram */}
-            <div className="space-y-2">
-              <Label htmlFor="instagram" className="text-lg">
-                Instagram
-              </Label>
-              <Input id="instagram" value={formData.instagram} onChange={e => setFormData({
-              ...formData,
-              instagram: e.target.value
-            })} placeholder="@username" className="text-lg h-12" />
-            </div>
-
-            {/* Logo Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="logo" className="text-lg">
-                הוספת לוגו
-              </Label>
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-smooth cursor-pointer bg-muted/30">
-                <input id="logo" type="file" accept="image/*" onChange={e => handleFileChange(e, "logo")} className="hidden" />
-                <label htmlFor="logo" className="cursor-pointer">
-                  {logoPreview ? <div className="space-y-4">
-                      <img src={logoPreview} alt="Logo preview" className="mx-auto max-h-48 rounded-lg" />
-                      <p className="text-base text-muted-foreground">{formData.logo?.name}</p>
-                      <p className="text-sm text-primary">לחץ להחלפת התמונה</p>
-                    </div> : <>
-                      <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-base text-muted-foreground mb-2">
-                        לחץ להעלאת קובץ או גרור לכאן
-                      </p>
-                      <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
-                    </>}
-                </label>
-              </div>
-              {errors.logo && <p className="text-destructive text-sm">{errors.logo}</p>}
-            </div>
-
-            {/* Product Images Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="productImages" className="text-lg">
-                הוספת תמונות המוצרים
-              </Label>
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-smooth cursor-pointer bg-muted/30">
-                <input id="productImages" type="file" accept="image/*" onChange={e => handleFileChange(e, "productImages")} className="hidden" />
-                <label htmlFor="productImages" className="cursor-pointer">
-                  {productImagesPreview ? <div className="space-y-4">
-                      <img src={productImagesPreview} alt="Product images preview" className="mx-auto max-h-48 rounded-lg" />
-                      <p className="text-base text-muted-foreground">{formData.productImages?.name}</p>
-                      <p className="text-sm text-primary">לחץ להחלפת התמונה</p>
-                    </div> : <>
-                      <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-base text-muted-foreground mb-2">
-                        לחץ להעלאת קובץ או גרור לכאן
-                      </p>
-                      <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
-                    </>}
-                </label>
-              </div>
-              {errors.productImages && <p className="text-destructive text-sm">{errors.productImages}</p>}
-            </div>
-
-            {/* Product Catalog */}
-            <div className="space-y-4">
-              <Label className="text-lg">
-                מידע על המוצרים שלכם
-              </Label>
-              
-              {/* Radio Group for Catalog Type */}
-              <RadioGroup value={formData.productCatalogType} onValueChange={(value: "text" | "file") => setFormData({
-              ...formData,
-              productCatalogType: value
-            })} className="space-y-3">
-                <div className="flex items-center justify-end space-x-4 space-x-reverse">
-                  <Label htmlFor="catalog-text" className="text-base font-medium cursor-pointer"> תיאור מוצרים (טקסט)  </Label>
-                  <RadioGroupItem value="text" id="catalog-text" />
-                </div>
-                <div className="flex items-center justify-end space-x-4 space-x-reverse">
-                  <Label htmlFor="catalog-file" className="text-base font-medium cursor-pointer">העלאת קטלוג (Google Drive)  </Label>
-                  <RadioGroupItem value="file" id="catalog-file" />
-                </div>
-              </RadioGroup>
-
-              {/* Conditional Fields Based on Selection */}
-              {formData.productCatalogType === "text" && <div className="space-y-2 pt-4">
-                  <Label htmlFor="productCatalogText" className="text-base">
-                    תיאור המוצרים
-                  </Label>
-                  <Textarea id="productCatalogText" value={formData.productCatalogText} onChange={e => setFormData({
-                ...formData,
-                productCatalogText: e.target.value
-              })} placeholder="תארו את המוצרים שאתם מספקים..." className="min-h-32 text-lg" />
-                </div>}
-
-              {formData.productCatalogType === "file" && <div className="space-y-4 pt-4">
-                  {/* File Upload */}
-                  <div className="space-y-2">
-                    <Label htmlFor="productCatalogFile" className="text-base">
-                      העלאת קובץ קטלוג
-                    </Label>
-                    <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-smooth cursor-pointer bg-muted/30">
-                      <input id="productCatalogFile" type="file" accept="image/*,application/pdf" onChange={e => handleFileChange(e, "productCatalogFile")} className="hidden" />
-                      <label htmlFor="productCatalogFile" className="cursor-pointer">
-                        {productCatalogPreview ? <div className="space-y-4">
-                            {formData.productCatalogFile?.type.startsWith('image/') ? <img src={productCatalogPreview} alt="Catalog preview" className="mx-auto max-h-48 rounded-lg" /> : <Upload className="mx-auto h-12 w-12 text-primary mb-4" />}
-                            <p className="text-base text-muted-foreground">{formData.productCatalogFile?.name}</p>
-                            <p className="text-sm text-primary">לחץ להחלפת הקובץ</p>
-                          </div> : <>
-                            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="text-base text-muted-foreground mb-2">
-                              לחץ להעלאת קובץ או גרור לכאן
-                            </p>
-                            <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
-                          </>}
-                      </label>
-                    </div>
-                    {errors.productCatalogFile && <p className="text-destructive text-sm">{errors.productCatalogFile}</p>}
-                  </div>
-
-                  {/* Google Drive Link */}
-                  <div className="space-y-2">
-                    <Label htmlFor="productCatalogDriveLink" className="text-base">
-                      או לינק לקטלוג ב־Google Drive
-                    </Label>
-                    <Input id="productCatalogDriveLink" type="url" value={formData.productCatalogDriveLink} onChange={e => setFormData({
-                  ...formData,
-                  productCatalogDriveLink: e.target.value
-                })} placeholder="https://drive.google.com/..." className="text-lg h-12" />
-                    {errors.productCatalogDriveLink && <p className="text-destructive text-sm">{errors.productCatalogDriveLink}</p>}
-                  </div>
-                </div>}
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-6 space-y-4">
-              {errors.submit && <div className="bg-destructive/10 border border-destructive rounded-lg p-4 text-center">
-                  <p className="text-destructive font-medium">{errors.submit}</p>
-                </div>}
-              <Button type="submit" disabled={isSubmitting} className="w-full h-14 text-xl font-bold gradient-primary hover:shadow-glow transition-smooth disabled:opacity-50">
-                {isSubmitting ? "שולח..." : "שליחת הטופס והצטרפות לאתר"}
-              </Button>
-            </div>
-
-            {/* Footer Note */}
-            <div className="text-center pt-4 space-y-2">
-              <p className="text-sm text-muted-foreground">
-                לאחר השליחה יישלח אימייל אישור אליכם ואלינו
+              <p className="text-lg text-muted-foreground mb-8">
+                אימייל אישור נשלח אליכם ואלינו
               </p>
-              <p className="text-sm text-muted-foreground">נחזור אליכם בהקדם האפשרי</p>
-            </div>
-          </form>
+              <Card className="bg-secondary/50">
+                <CardContent className="p-6">
+                  <p className="font-medium">
+                    נבדוק את הפרטים ונחזור אליכם בהקדם. העסק שלכם יופיע באתר תוך 2-3 ימי עסקים
+                  </p>
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </div>;
+    );
+  }
+
+  return (
+    <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          filter: "blur(8px)",
+          opacity: 0.15,
+        }}
+      />
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/90 to-background/70" />
+
+      <div className="max-w-5xl mx-auto relative z-10">
+        <div className="mb-8 flex justify-start">
+          <img src={logo} alt="הספקיה" className="h-32" />
+        </div>
+
+        <Card className="border-2">
+          <CardHeader className="text-center pb-8">
+            <CardTitle className="text-4xl font-bold mb-4">
+              ברוכים הבאים לאתר הספקיה
+            </CardTitle>
+            <CardDescription className="space-y-3 text-base max-w-3xl mx-auto">
+              <p>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</p>
+              <p>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</p>
+              <p className="font-semibold text-primary text-lg">רוצים להצטרף ולהופיע באתר??</p>
+              <p>כל שעליכם לעשות הוא למלא מספר פרטים בסיסיים וזהו.</p>
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="px-6 sm:px-12 pb-12">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Basic Information Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>פרטים בסיסיים</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="businessName">
+                        שם העסק <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="businessName"
+                        value={formData.businessName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, businessName: e.target.value })
+                        }
+                      />
+                      {errors.businessName && (
+                        <p className="text-destructive text-sm">{errors.businessName}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">
+                        Email <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
+                      {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="contactName">
+                        שם איש קשר <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="contactName"
+                        value={formData.contactName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, contactName: e.target.value })
+                        }
+                      />
+                      {errors.contactName && (
+                        <p className="text-destructive text-sm">{errors.contactName}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">
+                        טלפון <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      />
+                      {errors.phone && <p className="text-destructive text-sm">{errors.phone}</p>}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="mainAddress">
+                      כתובת מרכזית <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="mainAddress"
+                      value={formData.mainAddress}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mainAddress: e.target.value })
+                      }
+                    />
+                    {errors.mainAddress && (
+                      <p className="text-destructive text-sm">{errors.mainAddress}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="about">
+                      אודות העסק <span className="text-destructive">*</span>
+                    </Label>
+                    <Textarea
+                      id="about"
+                      value={formData.about}
+                      onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+                      placeholder="מה העסק מספק, כמה שנות פעילות, מי הלקוחות שלכם, מה החוזקות שלכם וכו'"
+                      className="min-h-24"
+                    />
+                    {errors.about && <p className="text-destructive text-sm">{errors.about}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="website">אתר אינטרנט</Label>
+                      <Input
+                        id="website"
+                        value={formData.website}
+                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                        placeholder="www.example.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="instagram">Instagram</Label>
+                      <Input
+                        id="instagram"
+                        value={formData.instagram}
+                        onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                        placeholder="@username"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Categories & Location Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>קטגוריות ואיזורי פעילות</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>
+                      קטגוריה <span className="text-destructive">*</span>
+                    </Label>
+                    <MultiSelect
+                      options={categories}
+                      selected={formData.categories}
+                      onChange={(selected) =>
+                        setFormData({ ...formData, categories: selected })
+                      }
+                      placeholder="בחר קטגוריות..."
+                    />
+                    {errors.categories && (
+                      <p className="text-destructive text-sm">{errors.categories}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>
+                      איזור פעילות <span className="text-destructive">*</span>
+                    </Label>
+                    <MultiSelect
+                      options={activityAreas}
+                      selected={formData.activityAreas}
+                      onChange={(selected) =>
+                        setFormData({ ...formData, activityAreas: selected })
+                      }
+                      placeholder="בחר איזורי פעילות..."
+                    />
+                    {errors.activityAreas && (
+                      <p className="text-destructive text-sm">{errors.activityAreas}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Media & Files Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>קבצים ומדיה</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>הוספת לוגו</Label>
+                    <FileUploadZone
+                      accept="image/*"
+                      value={formData.logo}
+                      onChange={handleLogoChange}
+                      preview={logoPreview}
+                      maxSize={10}
+                    />
+                    {errors.logo && <p className="text-destructive text-sm">{errors.logo}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>תמונות מוצרים</Label>
+                    <FileUploadZone
+                      accept="image/*"
+                      value={formData.productImages}
+                      onChange={handleProductImagesChange}
+                      preview={productImagesPreview}
+                      maxSize={10}
+                    />
+                    {errors.productImages && (
+                      <p className="text-destructive text-sm">{errors.productImages}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Label>קטלוג מוצרים</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" type="button" className="h-5 w-5">
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-80">
+                          <div className="space-y-2 text-sm">
+                            <p className="font-semibold">שיתוף קטלוג מ-Google Drive:</p>
+                            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                              <li>פתח את הקובץ ב-Google Drive</li>
+                              <li>לחץ על "שתף" או "Share"</li>
+                              <li>בחר "כל מי שיש לו את הקישור"</li>
+                              <li>העתק את הקישור והדבק כאן</li>
+                            </ol>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <RadioGroup
+                      value={formData.productCatalogType}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          productCatalogType: value as "text" | "file" | "drive" | "",
+                        })
+                      }
+                      className="space-y-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <RadioGroupItem value="text" id="catalog-text" className="mt-1" />
+                        <div className="flex-1 space-y-2">
+                          <Label htmlFor="catalog-text" className="cursor-pointer">
+                            תיאור טקסטואלי
+                          </Label>
+                          {formData.productCatalogType === "text" && (
+                            <Textarea
+                              value={formData.productCatalogText}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  productCatalogText: e.target.value,
+                                })
+                              }
+                              placeholder="תאר את המוצרים שלך..."
+                              className="min-h-24"
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <RadioGroupItem value="file" id="catalog-file" className="mt-1" />
+                        <div className="flex-1 space-y-2">
+                          <Label htmlFor="catalog-file" className="cursor-pointer">
+                            העלאת קובץ
+                          </Label>
+                          {formData.productCatalogType === "file" && (
+                            <FileUploadZone
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              value={formData.productCatalogFile}
+                              onChange={(files) =>
+                                setFormData({ ...formData, productCatalogFile: files })
+                              }
+                              maxSize={10}
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <RadioGroupItem value="drive" id="catalog-drive" className="mt-1" />
+                        <div className="flex-1 space-y-2">
+                          <Label htmlFor="catalog-drive" className="cursor-pointer">
+                            קישור ל-Google Drive
+                          </Label>
+                          {formData.productCatalogType === "drive" && (
+                            <Input
+                              value={formData.productCatalogDriveLink}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  productCatalogDriveLink: e.target.value,
+                                })
+                              }
+                              placeholder="הדבק קישור מ-Google Drive"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {errors.submit && (
+                <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
+                  <p className="text-destructive text-center">{errors.submit}</p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 text-lg"
+                size="lg"
+              >
+                {isSubmitting ? "שולח..." : "שלח טופס"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
