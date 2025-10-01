@@ -295,7 +295,7 @@ export default function SupplierRegistrationForm() {
 
       <div className="max-w-5xl mx-auto relative z-10">
         <div className="mb-8 flex justify-start">
-          <img src={logo} alt="הספקיה" className="h-32" />
+          <img src={logo} alt="הספקיה" className="h-24" />
         </div>
 
         <Card className="border-2">
