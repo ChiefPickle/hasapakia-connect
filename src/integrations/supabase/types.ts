@@ -22,15 +22,15 @@ export type Database = {
           categories: string[]
           contact_name: string
           created_at: string
-          delivery_radius: string | null
           email: string
           id: string
           instagram: string | null
           logo_url: string | null
-          open_hours: string | null
+          main_address: string | null
           phone: string
           product_images_url: string | null
           status: string
+          user_id: string | null
           website: string | null
         }
         Insert: {
@@ -40,15 +40,15 @@ export type Database = {
           categories: string[]
           contact_name: string
           created_at?: string
-          delivery_radius?: string | null
           email: string
           id?: string
           instagram?: string | null
           logo_url?: string | null
-          open_hours?: string | null
+          main_address?: string | null
           phone: string
           product_images_url?: string | null
           status?: string
+          user_id?: string | null
           website?: string | null
         }
         Update: {
@@ -58,15 +58,15 @@ export type Database = {
           categories?: string[]
           contact_name?: string
           created_at?: string
-          delivery_radius?: string | null
           email?: string
           id?: string
           instagram?: string | null
           logo_url?: string | null
-          open_hours?: string | null
+          main_address?: string | null
           phone?: string
           product_images_url?: string | null
           status?: string
+          user_id?: string | null
           website?: string | null
         }
         Relationships: []
