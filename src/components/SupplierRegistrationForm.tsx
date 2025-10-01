@@ -694,7 +694,7 @@ export default function SupplierRegistrationForm() {
                                     <div className="text-2xl">☁️</div>
                                     <div className="flex-1">
                                       <p className="font-semibold">מ-Google Drive</p>
-                                      <p className="text-xs text-muted-foreground">שתף קישור לקובץ מ-Google Drive</p>
+                                      <p className="text-xs text-muted-foreground">Google Drive שתף קישור לקובץ</p>
                                     </div>
                                   </div>
                                 </button>
