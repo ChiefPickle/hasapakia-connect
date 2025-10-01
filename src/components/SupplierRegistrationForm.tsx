@@ -345,19 +345,18 @@ export default function SupplierRegistrationForm() {
                     })} />
                       {errors.phone && <p className="text-destructive text-sm">{errors.phone}</p>}
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="mainAddress">
-                      כתובת מרכזית <span className="text-destructive">*</span>
-                    </Label>
-                    <Input id="mainAddress" value={formData.mainAddress} onChange={e => setFormData({
-                    ...formData,
-                    mainAddress: e.target.value
-                  })} />
-                    {errors.mainAddress && <p className="text-destructive text-sm">{errors.mainAddress}</p>}
+                    <div className="space-y-2">
+                      <Label htmlFor="mainAddress">
+                        כתובת מרכזית <span className="text-destructive">*</span>
+                      </Label>
+                      <Input id="mainAddress" value={formData.mainAddress} onChange={e => setFormData({
+                      ...formData,
+                      mainAddress: e.target.value
+                    })} />
+                      {errors.mainAddress && <p className="text-destructive text-sm">{errors.mainAddress}</p>}
+                    </div>
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="about">
                       אודות העסק <span className="text-destructive">*</span>
