@@ -704,16 +704,15 @@ export default function SupplierRegistrationForm() {
                                     <Input 
                                       value={formData.productCatalogDriveLink}
                                       onChange={e => setFormData({ ...formData, productCatalogDriveLink: e.target.value })}
-                                      placeholder="הדבק כאן קישור מ-Google Drive..."
+                                      placeholder="הדבק כאן קישור - Google Drive..."
                                       className="text-right"
                                       dir="ltr"
                                     />
                                     <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
-                                      <p className="font-semibold">💡 כיצד לשתף מ-Google Drive:</p>
+                                      <p className="font-semibold">💡  Google Drive:כיצד לשתף מ</p>
                                       <ol className="list-decimal list-inside space-y-0.5">
-                                        <li>פתח את הקובץ ב-Google Drive</li>
-                                        <li>לחץ על "שתף" או "Share"</li>
-                                        <li>בחר "כל מי שיש לו את הקישור"</li>
+                                        <li>-Google Drive פתח את הקובץ ב</li>
+                                        <li> "Share"לחץ על "שתף" או</li>
                                         <li>העתק את הקישור והדבק כאן</li>
                                       </ol>
                                     </div>
