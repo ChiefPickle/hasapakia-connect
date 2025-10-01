@@ -86,6 +86,9 @@ export default function SupplierRegistrationForm() {
     if (!formData.about.trim()) {
       newErrors.about = "שדה חובה";
     }
+    if (!formData.mainAddress.trim()) {
+      newErrors.mainAddress = "שדה חובה";
+    }
     if (formData.categories.length === 0) {
       newErrors.categories = "יש לבחור לפחות קטגוריה אחת";
     }
@@ -311,7 +314,6 @@ export default function SupplierRegistrationForm() {
             <div className="space-y-2">
               <Label htmlFor="contactName" className="text-lg">
                 שם איש קשר <span className="text-destructive">*</span>
-                <span className="text-sm text-muted-foreground mr-2">(נשאר חסוי)</span>
               </Label>
               <Input
                 id="contactName"
@@ -328,7 +330,6 @@ export default function SupplierRegistrationForm() {
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-lg">
                 טלפון <span className="text-destructive">*</span>
-                <span className="text-sm text-muted-foreground mr-2">(נשאר חסוי)</span>
               </Label>
               <Input
                 id="phone"
@@ -343,7 +344,7 @@ export default function SupplierRegistrationForm() {
             {/* Main Address */}
             <div className="space-y-2">
               <Label htmlFor="mainAddress" className="text-lg">
-                כתובת מרכזית
+                כתובת מרכזית <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="mainAddress"
@@ -352,13 +353,15 @@ export default function SupplierRegistrationForm() {
                 onChange={(e) => setFormData({ ...formData, mainAddress: e.target.value })}
                 className="text-lg h-12"
               />
+              {errors.mainAddress && (
+                <p className="text-destructive text-sm">{errors.mainAddress}</p>
+              )}
             </div>
 
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-lg">
                 Email <span className="text-destructive">*</span>
-                <span className="text-sm text-muted-foreground mr-2">(נשאר חסוי)</span>
               </Label>
               <Input
                 id="email"

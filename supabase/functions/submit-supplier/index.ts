@@ -19,7 +19,7 @@ const supplierSchema = z.object({
   activityAreas: z.array(z.string()).min(1, "At least one activity area required").max(20, "Too many activity areas"),
   website: z.string().trim().max(500, "Website URL too long").optional().or(z.literal("")),
   instagram: z.string().trim().max(500, "Instagram URL too long").optional().or(z.literal("")),
-  mainAddress: z.string().trim().max(500, "Main address text too long").optional().or(z.literal("")),
+  mainAddress: z.string().trim().min(1, "Main address is required").max(500, "Main address text too long"),
   logoFile: z.string().optional(),
   logoFileName: z.string().optional(),
   productImagesFile: z.string().optional(),
