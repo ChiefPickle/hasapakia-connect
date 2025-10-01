@@ -21,16 +21,40 @@ const supplierSchema = z.object({
   website: z.string().trim().max(500, "Website URL too long").optional().or(z.literal("")),
   instagram: z.string().trim().max(500, "Instagram URL too long").optional().or(z.literal("")),
   mainAddress: z.string().trim().min(1, "Main address is required").max(500, "Main address text too long"),
-  logoFile: z.string().optional(),
-  logoFileName: z.string().optional(),
-  productImagesFile: z.string().optional(),
-  productImagesFileName: z.string().optional(),
-  productCatalogType: z.enum(["text", "file", ""]).optional(),
+  logoFile: z.string().nullable().optional(),
+  logoFileName: z.string().nullable().optional(),
+  productImagesFile: z.string().nullable().optional(),
+  productImagesFileName: z.string().nullable().optional(),
+  productCatalogType: z.enum(["text", "file", "drive", ""]).optional(),
   productCatalogText: z.string().trim().max(5000, "Product catalog text too long").optional().or(z.literal("")),
-  productCatalogFile: z.string().optional(),
-  productCatalogFileName: z.string().optional(),
+  productCatalogFile: z.string().nullable().optional(),
+  productCatalogFileName: z.string().nullable().optional(),
   productCatalogDriveLink: z.string().trim().max(1000, "Drive link too long").optional().or(z.literal("")),
 });
+
+// Hebrew field name mapping for error messages
+const fieldNameMapping: Record<string, string> = {
+  businessName: "שם העסק",
+  companyId: "ח.פ / ע.מ",
+  contactName: "שם איש קשר",
+  phone: "טלפון",
+  email: "אימייל",
+  about: "אודות העסק",
+  categories: "קטגוריות",
+  activityAreas: "אזורי פעילות",
+  website: "אתר",
+  instagram: "אינסטגרם",
+  mainAddress: "כתובת מרכזית",
+  logoFile: "קובץ לוגו",
+  logoFileName: "שם קובץ לוגו",
+  productImagesFile: "קובץ תמונות מוצרים",
+  productImagesFileName: "שם קובץ תמונות",
+  productCatalogText: "תיאור מוצרים",
+  productCatalogFile: "קובץ קטלוג",
+  productCatalogFileName: "שם קובץ קטלוג",
+  productCatalogDriveLink: "קישור Drive",
+  productCatalogType: "סוג קטלוג"
+};
 
 // Allowed MIME types for images and PDFs
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -140,8 +164,17 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: "Invalid input data",
-          details: validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+          error: "נתונים לא תקינים",
+          details: validationResult.error.errors.map(e => {
+            const fieldPath = e.path.join('.');
+            const hebrewField = fieldNameMapping[fieldPath] || fieldPath;
+            return `${hebrewField}: ${e.message}`;
+          }),
+          fields: validationResult.error.errors.map(e => ({
+            field: e.path.join('.'),
+            hebrewName: fieldNameMapping[e.path.join('.')] || e.path.join('.'),
+            message: e.message
+          }))
         }),
         {
           status: 400,
@@ -285,6 +318,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("suppliers")
       .insert({
         business_name: formData.businessName,
+        company_id: formData.companyId || null,
         contact_name: formData.contactName,
         phone: formData.phone,
         email: formData.email,

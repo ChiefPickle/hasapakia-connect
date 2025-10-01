@@ -163,34 +163,45 @@ export default function SupplierRegistrationForm() {
 
       console.log("Submitting to edge function...");
       
+      // Build submission payload conditionally - only include file fields if they exist
+      const submissionData: any = {
+        businessName: formData.businessName,
+        companyId: formData.companyId || "",
+        contactName: formData.contactName,
+        phone: formData.phone,
+        email: formData.email,
+        about: formData.about,
+        categories: submittedCategories,
+        activityAreas: formData.activityAreas,
+        website: formData.website || "",
+        instagram: formData.instagram || "",
+        mainAddress: formData.mainAddress,
+        productCatalogType: formData.productCatalogType || "",
+        productCatalogText: formData.productCatalogText || "",
+        productCatalogDriveLink: formData.productCatalogDriveLink || ""
+      };
+
+      // Only add file fields if they exist
+      if (logoFileData) {
+        submissionData.logoFile = logoFileData;
+        submissionData.logoFileName = logoFileName;
+      }
+      if (productImagesFileData) {
+        submissionData.productImagesFile = productImagesFileData;
+        submissionData.productImagesFileName = productImagesFileName;
+      }
+      if (productCatalogFileData) {
+        submissionData.productCatalogFile = productCatalogFileData;
+        submissionData.productCatalogFileName = productCatalogFileName;
+      }
+      
       // Call the edge function
       const response = await fetch("https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          businessName: formData.businessName,
-          companyId: formData.companyId,
-          contactName: formData.contactName,
-          phone: formData.phone,
-          email: formData.email,
-          about: formData.about,
-          categories: submittedCategories,
-          activityAreas: formData.activityAreas,
-          website: formData.website,
-          instagram: formData.instagram,
-          mainAddress: formData.mainAddress,
-          logoFile: logoFileData,
-          logoFileName: logoFileName,
-          productImagesFile: productImagesFileData,
-          productImagesFileName: productImagesFileName,
-          productCatalogType: formData.productCatalogType,
-          productCatalogText: formData.productCatalogText,
-          productCatalogFile: productCatalogFileData,
-          productCatalogFileName: productCatalogFileName,
-          productCatalogDriveLink: formData.productCatalogDriveLink
-        })
+        body: JSON.stringify(submissionData)
       });
       
       const result = await response.json();
@@ -205,7 +216,24 @@ export default function SupplierRegistrationForm() {
         });
       } else {
         console.error("Submission failed:", result.error, result.details);
-        throw new Error(result.error || "Submission failed");
+        
+        // Build detailed error message
+        let errorMessage = result.error || "שגיאה בשליחת הטופס";
+        
+        if (result.details && Array.isArray(result.details)) {
+          errorMessage += "\n\n" + result.details.join("\n");
+        }
+        
+        // Set form errors if fields are provided
+        if (result.fields && Array.isArray(result.fields)) {
+          const newErrors: any = {};
+          result.fields.forEach((fieldError: any) => {
+            newErrors[fieldError.field] = `${fieldError.hebrewName}: ${fieldError.message}`;
+          });
+          setErrors(newErrors);
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
       console.error("Error submitting form:", error);
