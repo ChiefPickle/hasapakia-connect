@@ -24,9 +24,11 @@ const supplierSchema = z.object({
   logoFileName: z.string().optional(),
   productImagesFile: z.string().optional(),
   productImagesFileName: z.string().optional(),
+  productCatalogType: z.enum(["text", "file", ""]).optional(),
   productCatalogText: z.string().trim().max(5000, "Product catalog text too long").optional().or(z.literal("")),
   productCatalogFile: z.string().optional(),
   productCatalogFileName: z.string().optional(),
+  productCatalogDriveLink: z.string().trim().max(1000, "Drive link too long").optional().or(z.literal("")),
 });
 
 // Allowed MIME types for images and PDFs
@@ -295,6 +297,7 @@ const handler = async (req: Request): Promise<Response> => {
         product_images_url: productImagesUrl,
         product_catalog_text: formData.productCatalogText || null,
         product_catalog_url: productCatalogUrl,
+        product_catalog_drive_link: formData.productCatalogDriveLink || null,
         status: "pending"
       })
       .select()
@@ -327,7 +330,8 @@ const handler = async (req: Request): Promise<Response> => {
       ${formData.productCatalogText ? `<h2>תיאור מוצרים:</h2><p>${escapeHtml(formData.productCatalogText)}</p>` : ""}
       ${logoUrl ? `<p><strong>לוגו:</strong> <a href="${escapeHtml(logoUrl)}">צפה בלוגו</a></p>` : ""}
       ${productImagesUrl ? `<p><strong>תמונות מוצרים:</strong> <a href="${escapeHtml(productImagesUrl)}">צפה בתמונות</a></p>` : ""}
-      ${productCatalogUrl ? `<p><strong>קטלוג מוצרים:</strong> <a href="${escapeHtml(productCatalogUrl)}">צפה בקטלוג</a></p>` : ""}
+      ${productCatalogUrl ? `<p><strong>קטלוג מוצרים (קובץ):</strong> <a href="${escapeHtml(productCatalogUrl)}">צפה בקטלוג</a></p>` : ""}
+      ${formData.productCatalogDriveLink ? `<p><strong>קטלוג מוצרים (Google Drive):</strong> <a href="${escapeHtml(formData.productCatalogDriveLink)}">${escapeHtml(formData.productCatalogDriveLink)}</a></p>` : ""}
     `;
 
     const { error: emailError } = await resend.emails.send({

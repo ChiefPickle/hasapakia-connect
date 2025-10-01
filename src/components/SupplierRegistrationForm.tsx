@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Upload, CheckCircle2 } from "lucide-react";
 import logo from "@/assets/hasapakia-logo.png";
 import backgroundImage from "@/assets/supplier-bg.jpg";
@@ -21,8 +22,10 @@ interface FormData {
   mainAddress: string;
   logo: File | null;
   productImages: File | null;
+  productCatalogType: "text" | "file" | "";
   productCatalogText: string;
   productCatalogFile: File | null;
+  productCatalogDriveLink: string;
 }
 
 const categories = [
@@ -60,8 +63,10 @@ export default function SupplierRegistrationForm() {
     mainAddress: "",
     logo: null,
     productImages: null,
+    productCatalogType: "",
     productCatalogText: "",
     productCatalogFile: null,
+    productCatalogDriveLink: "",
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -171,9 +176,11 @@ export default function SupplierRegistrationForm() {
             logoFileName: logoFileName,
             productImagesFile: productImagesFileData,
             productImagesFileName: productImagesFileName,
+            productCatalogType: formData.productCatalogType,
             productCatalogText: formData.productCatalogText,
             productCatalogFile: productCatalogFileData,
             productCatalogFileName: productCatalogFileName,
+            productCatalogDriveLink: formData.productCatalogDriveLink,
           }),
         }
       );
@@ -568,62 +575,108 @@ export default function SupplierRegistrationForm() {
             {/* Product Catalog */}
             <div className="space-y-4">
               <Label className="text-lg">
-                העלו את קטלוג המוצרים שלכם או כתבו תיאור של המוצרים שאתם מוכרים
+                מידע על המוצרים שלכם
               </Label>
               
-              {/* Text Description */}
-              <div className="space-y-2">
-                <Label htmlFor="productCatalogText" className="text-base text-muted-foreground">
-                  תיאור המוצרים (טקסט)
-                </Label>
-                <Textarea
-                  id="productCatalogText"
-                  value={formData.productCatalogText}
-                  onChange={(e) => setFormData({ ...formData, productCatalogText: e.target.value })}
-                  placeholder="תארו את המוצרים שאתם מספקים..."
-                  className="min-h-32 text-lg"
-                />
-              </div>
-
-              {/* File Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="productCatalogFile" className="text-base text-muted-foreground">
-                  או העלו קטלוג (PDF/תמונה)
-                </Label>
-                <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-smooth cursor-pointer bg-muted/30">
-                  <input
-                    id="productCatalogFile"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => handleFileChange(e, "productCatalogFile")}
-                    className="hidden"
-                  />
-                  <label htmlFor="productCatalogFile" className="cursor-pointer">
-                    {productCatalogPreview ? (
-                      <div className="space-y-4">
-                        {formData.productCatalogFile?.type.startsWith('image/') ? (
-                          <img src={productCatalogPreview} alt="Catalog preview" className="mx-auto max-h-48 rounded-lg" />
-                        ) : (
-                          <Upload className="mx-auto h-12 w-12 text-primary mb-4" />
-                        )}
-                        <p className="text-base text-muted-foreground">{formData.productCatalogFile?.name}</p>
-                        <p className="text-sm text-primary">לחץ להחלפת הקובץ</p>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                        <p className="text-base text-muted-foreground mb-2">
-                          לחץ להעלאת קובץ או גרור לכאן
-                        </p>
-                        <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
-                      </>
-                    )}
-                  </label>
+              {/* Radio Group for Catalog Type */}
+              <RadioGroup
+                value={formData.productCatalogType}
+                onValueChange={(value: "text" | "file") => 
+                  setFormData({ ...formData, productCatalogType: value })
+                }
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <RadioGroupItem value="text" id="catalog-text" />
+                  <Label htmlFor="catalog-text" className="text-base font-medium cursor-pointer">
+                    תיאור מוצרים (טקסט)
+                  </Label>
                 </div>
-                {errors.productCatalogFile && (
-                  <p className="text-destructive text-sm">{errors.productCatalogFile}</p>
-                )}
-              </div>
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <RadioGroupItem value="file" id="catalog-file" />
+                  <Label htmlFor="catalog-file" className="text-base font-medium cursor-pointer">
+                    העלאת קטלוג (קובץ PDF/תמונה או לינק ל־Google Drive)
+                  </Label>
+                </div>
+              </RadioGroup>
+
+              {/* Conditional Fields Based on Selection */}
+              {formData.productCatalogType === "text" && (
+                <div className="space-y-2 pt-4">
+                  <Label htmlFor="productCatalogText" className="text-base">
+                    תיאור המוצרים
+                  </Label>
+                  <Textarea
+                    id="productCatalogText"
+                    value={formData.productCatalogText}
+                    onChange={(e) => setFormData({ ...formData, productCatalogText: e.target.value })}
+                    placeholder="תארו את המוצרים שאתם מספקים..."
+                    className="min-h-32 text-lg"
+                  />
+                </div>
+              )}
+
+              {formData.productCatalogType === "file" && (
+                <div className="space-y-4 pt-4">
+                  {/* File Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="productCatalogFile" className="text-base">
+                      העלאת קובץ קטלוג
+                    </Label>
+                    <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-smooth cursor-pointer bg-muted/30">
+                      <input
+                        id="productCatalogFile"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileChange(e, "productCatalogFile")}
+                        className="hidden"
+                      />
+                      <label htmlFor="productCatalogFile" className="cursor-pointer">
+                        {productCatalogPreview ? (
+                          <div className="space-y-4">
+                            {formData.productCatalogFile?.type.startsWith('image/') ? (
+                              <img src={productCatalogPreview} alt="Catalog preview" className="mx-auto max-h-48 rounded-lg" />
+                            ) : (
+                              <Upload className="mx-auto h-12 w-12 text-primary mb-4" />
+                            )}
+                            <p className="text-base text-muted-foreground">{formData.productCatalogFile?.name}</p>
+                            <p className="text-sm text-primary">לחץ להחלפת הקובץ</p>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                            <p className="text-base text-muted-foreground mb-2">
+                              לחץ להעלאת קובץ או גרור לכאן
+                            </p>
+                            <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                    {errors.productCatalogFile && (
+                      <p className="text-destructive text-sm">{errors.productCatalogFile}</p>
+                    )}
+                  </div>
+
+                  {/* Google Drive Link */}
+                  <div className="space-y-2">
+                    <Label htmlFor="productCatalogDriveLink" className="text-base">
+                      או לינק לקטלוג ב־Google Drive
+                    </Label>
+                    <Input
+                      id="productCatalogDriveLink"
+                      type="url"
+                      value={formData.productCatalogDriveLink}
+                      onChange={(e) => setFormData({ ...formData, productCatalogDriveLink: e.target.value })}
+                      placeholder="https://drive.google.com/..."
+                      className="text-lg h-12"
+                    />
+                    {errors.productCatalogDriveLink && (
+                      <p className="text-destructive text-sm">{errors.productCatalogDriveLink}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
