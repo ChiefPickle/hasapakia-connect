@@ -71,7 +71,6 @@ export default function SupplierRegistrationForm() {
       setCatalogFileSource("");
     }
   }, [formData.productCatalogType]);
-
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.businessName.trim()) newErrors.businessName = "שדה חובה";
@@ -114,9 +113,7 @@ export default function SupplierRegistrationForm() {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     console.log("Form submission started");
-    
     if (!validateForm()) {
       console.log("Form validation failed");
       toast({
@@ -128,10 +125,9 @@ export default function SupplierRegistrationForm() {
     }
     setIsSubmitting(true);
     setErrors({});
-    
     try {
       console.log("Preparing submission data...");
-      
+
       // Prepare file data as base64
       let logoFileData = null;
       let logoFileName = null;
@@ -140,24 +136,19 @@ export default function SupplierRegistrationForm() {
         logoFileData = logoPreview;
         logoFileName = formData.logo[0].name;
       }
-      
       const productImagesFilesData: string[] = [];
       const productImagesFileNames: string[] = [];
-      
       if (formData.productImages && formData.productImages.length > 0) {
         console.log(`Preparing ${formData.productImages.length} product images`);
-        
         for (let i = 0; i < formData.productImages.length; i++) {
           const file = formData.productImages[i];
           const preview = productImagesPreview[i];
-          
           if (preview) {
             productImagesFilesData.push(preview);
             productImagesFileNames.push(file.name);
           }
         }
       }
-      
       let productCatalogFileData = null;
       let productCatalogFileName = null;
       if (formData.productCatalogFile && formData.productCatalogFile[0]) {
@@ -168,7 +159,6 @@ export default function SupplierRegistrationForm() {
             const timeout = setTimeout(() => {
               reject(new Error("File reading timeout"));
             }, 30000);
-            
             reader.onloadend = () => {
               clearTimeout(timeout);
               resolve(reader.result as string);
@@ -193,9 +183,8 @@ export default function SupplierRegistrationForm() {
       if (formData.categories.includes("אחר") && otherCategory.trim()) {
         submittedCategories = formData.categories.map(cat => cat === "אחר" ? `אחר: ${otherCategory.trim()}` : cat);
       }
-
       console.log("Submitting to edge function...");
-      
+
       // Build submission payload conditionally - only include file fields if they exist
       const submissionData: any = {
         businessName: formData.businessName,
@@ -227,7 +216,7 @@ export default function SupplierRegistrationForm() {
         submissionData.productCatalogFile = productCatalogFileData;
         submissionData.productCatalogFileName = productCatalogFileName;
       }
-      
+
       // Call the edge function
       const response = await fetch("https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier", {
         method: "POST",
@@ -236,10 +225,8 @@ export default function SupplierRegistrationForm() {
         },
         body: JSON.stringify(submissionData)
       });
-      
       const result = await response.json();
       console.log("Edge function response:", result);
-      
       if (result.success) {
         console.log("Form submitted successfully");
         setSubmitted(true);
@@ -249,14 +236,13 @@ export default function SupplierRegistrationForm() {
         });
       } else {
         console.error("Submission failed:", result.error, result.details);
-        
+
         // Build detailed error message
         let errorMessage = result.error || "שגיאה בשליחת הטופס";
-        
         if (result.details && Array.isArray(result.details)) {
           errorMessage += "\n\n" + result.details.join("\n");
         }
-        
+
         // Set form errors if fields are provided
         if (result.fields && Array.isArray(result.fields)) {
           const newErrors: any = {};
@@ -265,7 +251,6 @@ export default function SupplierRegistrationForm() {
           });
           setErrors(newErrors);
         }
-        
         throw new Error(errorMessage);
       }
     } catch (error: any) {
@@ -309,24 +294,27 @@ export default function SupplierRegistrationForm() {
       setLogoPreview("");
     }
   };
-  
   const handleProductImagesChange = (files: FileList | null) => {
     console.log("Product images change:", files?.length, "files");
-    
     if (!files || files.length === 0) {
-      setFormData(prev => ({ ...prev, productImages: [] }));
+      setFormData(prev => ({
+        ...prev,
+        productImages: []
+      }));
       setProductImagesPreview([]);
       return;
     }
-    
+
     // Convert FileList to File array
     const filesArray = Array.from(files);
-    setFormData(prev => ({ ...prev, productImages: filesArray }));
-    
+    setFormData(prev => ({
+      ...prev,
+      productImages: filesArray
+    }));
+
     // Read all files for preview
     const previews: string[] = [];
     let completed = 0;
-    
     filesArray.forEach((file, index) => {
       try {
         const reader = new FileReader();
@@ -334,7 +322,6 @@ export default function SupplierRegistrationForm() {
           console.log(`Product image ${index + 1} preview loaded`);
           previews[index] = reader.result as string;
           completed++;
-          
           if (completed === filesArray.length) {
             setProductImagesPreview(previews);
           }
@@ -342,7 +329,6 @@ export default function SupplierRegistrationForm() {
         reader.onerror = () => {
           console.error(`Failed to read product image ${index + 1}`);
           completed++;
-          
           if (completed === filesArray.length) {
             setProductImagesPreview(previews.filter(p => p));
             toast({
@@ -409,11 +395,7 @@ export default function SupplierRegistrationForm() {
       <div className="max-w-5xl mx-auto relative z-10">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img
-            src={logo}
-            alt="הספקיה"
-            className="w-40 sm:w-48 md:w-56 h-auto drop-shadow-md"
-          />
+          <img src={logo} alt="הספקיה" className="w-40 sm:w-48 md:w-56 h-auto drop-shadow-md" />
         </div>
 
         {/* Form Card */}
@@ -637,25 +619,18 @@ export default function SupplierRegistrationForm() {
                             העלאת קובץ
                           </Label>
                           
-                          {formData.productCatalogType === "file" && (
-                            <div className="pr-6 space-y-3">
+                          {formData.productCatalogType === "file" && <div className="pr-6 space-y-3">
                               <p className="text-sm text-muted-foreground">בחר מאיפה להעלות את הקובץ:</p>
                               
                               <div className="space-y-3 bg-accent/20 p-4 rounded-lg">
                                 {/* Local Device Option */}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setCatalogFileSource("local");
-                                    setFormData({ ...formData, productCatalogDriveLink: "" });
-                                  }}
-                                  className={cn(
-                                    "w-full p-4 rounded-lg border-2 transition-all text-right",
-                                    catalogFileSource === "local" 
-                                      ? "border-primary bg-primary/5" 
-                                      : "border-border bg-background hover:border-primary/50"
-                                  )}
-                                >
+                                <button type="button" onClick={() => {
+                              setCatalogFileSource("local");
+                              setFormData({
+                                ...formData,
+                                productCatalogDriveLink: ""
+                              });
+                            }} className={cn("w-full p-4 rounded-lg border-2 transition-all text-right", catalogFileSource === "local" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50")}>
                                   <div className="flex items-center gap-3">
                                     <div className="text-2xl">💻</div>
                                     <div className="flex-1">
@@ -665,76 +640,42 @@ export default function SupplierRegistrationForm() {
                                   </div>
                                 </button>
                                 
-                                {catalogFileSource === "local" && (
-                                  <div className="pr-4 animate-in slide-in-from-top-2">
-                                    <FileUploadZone 
-                                      accept=".pdf,.doc,.docx,.xls,.xlsx" 
-                                      value={formData.productCatalogFile} 
-                                      onChange={files => setFormData({ ...formData, productCatalogFile: files })} 
-                                      maxSize={10} 
-                                    />
-                                  </div>
-                                )}
+                                {catalogFileSource === "local" && <div className="pr-4 animate-in slide-in-from-top-2">
+                                    <FileUploadZone accept=".pdf,.doc,.docx,.xls,.xlsx" value={formData.productCatalogFile} onChange={files => setFormData({
+                                ...formData,
+                                productCatalogFile: files
+                              })} maxSize={10} />
+                                  </div>}
                                 
                                 {/* Google Drive Option */}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setCatalogFileSource("drive");
-                                    setFormData({ ...formData, productCatalogFile: null });
-                                  }}
-                                  className={cn(
-                                    "w-full p-4 rounded-lg border-2 transition-all text-right",
-                                    catalogFileSource === "drive" 
-                                      ? "border-primary bg-primary/5" 
-                                      : "border-border bg-background hover:border-primary/50"
-                                  )}
-                                >
+                                <button type="button" onClick={() => {
+                              setCatalogFileSource("drive");
+                              setFormData({
+                                ...formData,
+                                productCatalogFile: null
+                              });
+                            }} className={cn("w-full p-4 rounded-lg border-2 transition-all text-right", catalogFileSource === "drive" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50")}>
                                   <div className="flex items-center gap-3">
                                     <div className="text-2xl">☁️</div>
                                     <div className="flex-1">
-                                      <p className="font-semibold">מ-Google Drive</p>
+                                      <p className="font-semibold">Google Drive</p>
                                       <p className="text-xs text-muted-foreground">Google Drive שתף קישור לקובץ</p>
                                     </div>
                                   </div>
                                 </button>
                                 
-                                {catalogFileSource === "drive" && (
-                                  <div className="pr-4 space-y-2 animate-in slide-in-from-top-2">
-                                    <Input 
-                                      value={formData.productCatalogDriveLink}
-                                      onChange={e => setFormData({ ...formData, productCatalogDriveLink: e.target.value })}
-                                      placeholder="הדבק כאן קישור - Google Drive..."
-                                      className="text-right"
-                                      dir="ltr"
-                                    />
-<div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
-  <p className="font-semibold">💡  Google Drive: כיצד לשתף מ</p>
-  <ol className="list-none counter-reset my-counter space-y-1">
-    <li className="flex justify-between items-start">
-      <span className="text-right">-Google Drive פתח את הקובץ ב</span>
-      <span className="ml-2 before:counter-increment-my-counter before:content-[counter(my-counter)]">
-        {/* Number will appear here */}
-      </span>
-    </li>
-    <li className="flex justify-between items-start">
-      <span className="text-right">"Share" לחץ על "שתף" או</span>
-      <span className="ml-2 before:counter-increment-my-counter before:content-[counter(my-counter)]"></span>
-    </li>
-    <li className="flex justify-between items-start">
-      <span className="text-right">העתק את הקישור והדבק כאן</span>
-      <span className="ml-2 before:counter-increment-my-counter before:content-[counter(my-counter)]"></span>
-    </li>
-  </ol>
-</div>
+                                {catalogFileSource === "drive" && <div className="pr-4 space-y-2 animate-in slide-in-from-top-2">
+                                    <Input value={formData.productCatalogDriveLink} onChange={e => setFormData({
+                                ...formData,
+                                productCatalogDriveLink: e.target.value
+                              })} placeholder="הדבק כאן קישור - Google Drive..." className="text-right" dir="ltr" />
 
 
-                                  </div>
-                                )}
+
+                                  </div>}
                               </div>
                               {errors.productCatalog && <p className="text-destructive text-sm">{errors.productCatalog}</p>}
-                            </div>
-                          )}
+                            </div>}
                         </div>
                       </div>
 
