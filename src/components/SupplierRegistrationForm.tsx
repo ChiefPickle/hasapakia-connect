@@ -153,6 +153,14 @@ export default function SupplierRegistrationForm() {
         productCatalogFileName = formData.productCatalogFile[0].name;
       }
 
+      // Transform categories if "אחר" is selected with text
+      let submittedCategories = formData.categories;
+      if (formData.categories.includes("אחר") && otherCategory.trim()) {
+        submittedCategories = formData.categories.map(cat => 
+          cat === "אחר" ? `אחר: ${otherCategory.trim()}` : cat
+        );
+      }
+
       // Call the edge function
       const response = await fetch(
         "https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier",
@@ -167,7 +175,7 @@ export default function SupplierRegistrationForm() {
             phone: formData.phone,
             email: formData.email,
             about: formData.about,
-            categories: formData.categories,
+            categories: submittedCategories,
             activityAreas: formData.activityAreas,
             website: formData.website,
             instagram: formData.instagram,
@@ -293,13 +301,15 @@ export default function SupplierRegistrationForm() {
         <Card className="border-2">
           <CardHeader className="text-center pb-8">
             <CardTitle className="text-4xl font-bold mb-4">
-              ברוכים הבאים לאתר הספקיה
+              ברוכים הבאים לאתר הַסַּפָּקִיָּה
             </CardTitle>
-            <CardDescription className="space-y-3 text-base max-w-3xl mx-auto">
-              <p>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</p>
-              <p>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</p>
-              <p className="font-semibold text-primary text-lg">רוצים להצטרף ולהופיע באתר??</p>
-              <p>כל שעליכם לעשות הוא למלא מספר פרטים בסיסיים וזהו.</p>
+            <CardDescription className="text-base max-w-3xl mx-auto">
+              <div className="space-y-3">
+                <div>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</div>
+                <div>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</div>
+                <div className="font-semibold text-primary text-lg">רוצים להצטרף ולהופיע באתר??</div>
+                <div>כל שעליכם לעשות הוא למלא מספר פרטים בסיסיים וזהו.</div>
+              </div>
             </CardDescription>
           </CardHeader>
 

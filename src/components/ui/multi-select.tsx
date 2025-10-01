@@ -81,7 +81,7 @@ export function MultiSelect({
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent className="w-full p-0" align="start" dir="rtl">
         <Command>
           <CommandInput placeholder="חפש..." className="h-9" />
           <CommandList>
@@ -91,12 +91,13 @@ export function MultiSelect({
                 <CommandItem
                   key={option}
                   onSelect={() => handleSelect(option)}
-                  className="cursor-pointer flex flex-row-reverse items-center gap-2"
+                  className="cursor-pointer flex flex-row-reverse items-center gap-2 data-[selected=true]:bg-transparent"
                 >
                   <Checkbox
                     checked={selected.includes(option)}
+                    className="h-4 w-4 shrink-0 pointer-events-none"
                   />
-                  <span className="text-right">{option}</span>
+                  <span className="text-right flex-1">{option}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
