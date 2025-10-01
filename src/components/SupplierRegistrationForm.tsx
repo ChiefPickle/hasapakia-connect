@@ -26,7 +26,7 @@ interface FormData {
   instagram: string;
   mainAddress: string;
   logo: FileList | null;
-  productImages: File[];
+  productImages: FileList | null;
   productCatalogType: "text" | "file" | "drive" | "";
   productCatalogText: string;
   productCatalogFile: FileList | null;
@@ -51,7 +51,7 @@ export default function SupplierRegistrationForm() {
     instagram: "",
     mainAddress: "",
     logo: null,
-    productImages: [],
+    productImages: null,
     productCatalogType: "",
     productCatalogText: "",
     productCatalogFile: null,
@@ -89,7 +89,8 @@ export default function SupplierRegistrationForm() {
       newErrors.logo = "גודל הקובץ חורג מ-10MB";
     }
     if (formData.productImages && formData.productImages.length > 0) {
-      const oversizedFiles = formData.productImages.filter(file => file.size > 10 * 1024 * 1024);
+      const filesArray = Array.from(formData.productImages);
+      const oversizedFiles = filesArray.filter(file => file.size > 10 * 1024 * 1024);
       if (oversizedFiles.length > 0) {
         newErrors.productImages = `${oversizedFiles.length} קבצים חורגים מ-10MB`;
       }
@@ -100,12 +101,22 @@ export default function SupplierRegistrationForm() {
     if (formData.productCatalogType === "file") {
       if (catalogFileSource === "") {
         newErrors.productCatalog = "בחר מאיפה להעלות את הקובץ";
-      } else if (catalogFileSource === "local" && !formData.productCatalogFile) {
-        newErrors.productCatalog = "נא להעלות קובץ או לבחור Google Drive";
+      } else if (catalogFileSource === "local") {
+        if (!formData.productCatalogFile || formData.productCatalogFile.length === 0) {
+          newErrors.productCatalog = "נא להעלות קובץ או לבחור Google Drive";
+        } else {
+          const file = formData.productCatalogFile[0];
+          const validExtensions = ['.csv', '.tsv', '.xls', '.xlsx'];
+          const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+          
+          if (!validExtensions.includes(fileExtension)) {
+            newErrors.productCatalog = "נא להעלות קובץ CSV, TSV או Excel בלבד";
+          } else if (file.size > 10 * 1024 * 1024) {
+            newErrors.productCatalog = "גודל הקובץ חורג מ-10MB";
+          }
+        }
       } else if (catalogFileSource === "drive" && !formData.productCatalogDriveLink) {
         newErrors.productCatalog = "נא להזין קישור מ-Google Drive";
-      } else if (catalogFileSource === "local" && formData.productCatalogFile && formData.productCatalogFile[0] && formData.productCatalogFile[0].size > 10 * 1024 * 1024) {
-        newErrors.productCatalog = "גודל הקובץ חורג מ-10MB";
       }
     }
     setErrors(newErrors);
@@ -140,8 +151,9 @@ export default function SupplierRegistrationForm() {
       const productImagesFileNames: string[] = [];
       if (formData.productImages && formData.productImages.length > 0) {
         console.log(`Preparing ${formData.productImages.length} product images`);
-        for (let i = 0; i < formData.productImages.length; i++) {
-          const file = formData.productImages[i];
+        const filesArray = Array.from(formData.productImages);
+        for (let i = 0; i < filesArray.length; i++) {
+          const file = filesArray[i];
           const preview = productImagesPreview[i];
           if (preview) {
             productImagesFilesData.push(preview);
@@ -296,25 +308,22 @@ export default function SupplierRegistrationForm() {
   };
   const handleProductImagesChange = (files: FileList | null) => {
     console.log("Product images change:", files?.length, "files");
+    
+    setFormData(prev => ({
+      ...prev,
+      productImages: files
+    }));
+
     if (!files || files.length === 0) {
-      setFormData(prev => ({
-        ...prev,
-        productImages: []
-      }));
       setProductImagesPreview([]);
       return;
     }
 
-    // Convert FileList to File array
-    const filesArray = Array.from(files);
-    setFormData(prev => ({
-      ...prev,
-      productImages: filesArray
-    }));
-
     // Read all files for preview
     const previews: string[] = [];
+    const filesArray = Array.from(files);
     let completed = 0;
+    
     filesArray.forEach((file, index) => {
       try {
         const reader = new FileReader();
@@ -341,6 +350,10 @@ export default function SupplierRegistrationForm() {
         reader.readAsDataURL(file);
       } catch (error) {
         console.error("Error in handleProductImagesChange:", error);
+        completed++;
+        if (completed === filesArray.length) {
+          setProductImagesPreview(previews.filter(p => p));
+        }
       }
     });
   };
@@ -568,7 +581,7 @@ export default function SupplierRegistrationForm() {
 
                   <div className="space-y-2">
                     <Label>תמונות (ניתן להעלות עד 10 תמונות)</Label>
-                    <FileUploadZone accept="image/*" multiple={true} value={null} onChange={handleProductImagesChange} preview={productImagesPreview} maxSize={10} />
+                    <FileUploadZone accept="image/*" multiple={true} value={formData.productImages} onChange={handleProductImagesChange} preview={productImagesPreview} maxSize={10} />
                     {errors.productImages && <p className="text-destructive text-sm">{errors.productImages}</p>}
                   </div>
 
@@ -641,10 +654,13 @@ export default function SupplierRegistrationForm() {
                                 </button>
                                 
                                 {catalogFileSource === "local" && <div className="pr-4 animate-in slide-in-from-top-2">
-                                    <FileUploadZone accept=".pdf,.doc,.docx,.xls,.xlsx" value={formData.productCatalogFile} onChange={files => setFormData({
+                                    <FileUploadZone accept=".csv,.tsv,.xls,.xlsx,text/csv,text/tab-separated-values,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" value={formData.productCatalogFile} onChange={files => setFormData({
                                 ...formData,
                                 productCatalogFile: files
                               })} maxSize={10} />
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      📄 קבצים נתמכים: CSV, TSV, Excel (.xls, .xlsx)
+                                    </p>
                                   </div>}
                                 
                                 {/* Google Drive Option */}

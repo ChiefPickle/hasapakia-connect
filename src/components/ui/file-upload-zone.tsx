@@ -53,10 +53,29 @@ export function FileUploadZone({
     }
   };
 
-  const handleRemove = () => {
-    onChange(null);
-    if (inputRef.current) {
-      inputRef.current.value = "";
+  const handleRemove = (indexToRemove?: number) => {
+    if (!multiple || indexToRemove === undefined) {
+      // Remove all files (for single upload mode)
+      onChange(null);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    } else {
+      // Remove specific file (for multiple uploads)
+      if (value) {
+        const dt = new DataTransfer();
+        Array.from(value).forEach((file, index) => {
+          if (index !== indexToRemove) {
+            dt.items.add(file);
+          }
+        });
+        onChange(dt.files.length > 0 ? dt.files : null);
+        
+        // Clear input if all files removed
+        if (dt.files.length === 0 && inputRef.current) {
+          inputRef.current.value = "";
+        }
+      }
     }
   };
 
@@ -137,7 +156,7 @@ export function FileUploadZone({
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={handleRemove}
+                onClick={() => handleRemove(multiple ? index : undefined)}
                 className="shrink-0"
               >
                 <X className="h-4 w-4" />
@@ -152,7 +171,7 @@ export function FileUploadZone({
             onClick={() => inputRef.current?.click()}
             className="w-full"
           >
-            שנה קובץ
+            {multiple ? "הוסף עוד קבצים" : "שנה קובץ"}
           </Button>
         </div>
       )}
