@@ -25,14 +25,14 @@ interface FormData {
   instagram: string;
   mainAddress: string;
   logo: FileList | null;
-  productImages: FileList | null;
+  productImages: File[];
   productCatalogType: "text" | "file" | "drive" | "";
   productCatalogText: string;
   productCatalogFile: FileList | null;
   productCatalogDriveLink: string;
 }
 const categories = ["חומרי גלם יבשים", "ירקות, ירוקים, פירות", "בשר, עוף, דגים", "גבינות וחלב", "משקאות, מיצים, שייקים", "קפה ותה", "אלכוהול, יין, בירות", "קונדיטוריה, אפייה, גלידה", "לחמים ומאפים", "מתוקים וקינוחים", "מוצרי מעדניה", "אוכל מוכן וקייטרינג", "כלי אריזה וחומרי ניקוי", "ציוד מטבח ובר", "כלי בית", "אחר"];
-const activityAreas = ["צפון", "מרכז", "דרום", "שפלה", "כל הארץ"];
+const activityAreas = ["צפון", "מרכז", "דרום", "שפלה", "השרון", "כל הארץ"];
 export default function SupplierRegistrationForm() {
   const {
     toast
@@ -50,7 +50,7 @@ export default function SupplierRegistrationForm() {
     instagram: "",
     mainAddress: "",
     logo: null,
-    productImages: null,
+    productImages: [],
     productCatalogType: "",
     productCatalogText: "",
     productCatalogFile: null,
@@ -79,8 +79,14 @@ export default function SupplierRegistrationForm() {
     if (formData.logo && formData.logo[0] && formData.logo[0].size > 10 * 1024 * 1024) {
       newErrors.logo = "גודל הקובץ חורג מ-10MB";
     }
-    if (formData.productImages && formData.productImages[0] && formData.productImages[0].size > 10 * 1024 * 1024) {
-      newErrors.productImages = "גודל הקובץ חורג מ-10MB";
+    if (formData.productImages && formData.productImages.length > 0) {
+      const oversizedFiles = formData.productImages.filter(file => file.size > 10 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
+        newErrors.productImages = `${oversizedFiles.length} קבצים חורגים מ-10MB`;
+      }
+      if (formData.productImages.length > 10) {
+        newErrors.productImages = "ניתן להעלות עד 10 תמונות";
+      }
     }
     if (formData.productCatalogFile && formData.productCatalogFile[0] && formData.productCatalogFile[0].size > 10 * 1024 * 1024) {
       newErrors.productCatalogFile = "גודל הקובץ חורג מ-10MB";
@@ -117,12 +123,21 @@ export default function SupplierRegistrationForm() {
         logoFileName = formData.logo[0].name;
       }
       
-      let productImagesFileData = null;
-      let productImagesFileName = null;
-      if (formData.productImages && formData.productImages[0]) {
-        console.log("Preparing product images:", formData.productImages[0].name, formData.productImages[0].type, formData.productImages[0].size);
-        productImagesFileData = productImagesPreview[0];
-        productImagesFileName = formData.productImages[0].name;
+      const productImagesFilesData: string[] = [];
+      const productImagesFileNames: string[] = [];
+      
+      if (formData.productImages && formData.productImages.length > 0) {
+        console.log(`Preparing ${formData.productImages.length} product images`);
+        
+        for (let i = 0; i < formData.productImages.length; i++) {
+          const file = formData.productImages[i];
+          const preview = productImagesPreview[i];
+          
+          if (preview) {
+            productImagesFilesData.push(preview);
+            productImagesFileNames.push(file.name);
+          }
+        }
       }
       
       let productCatalogFileData = null;
@@ -186,9 +201,9 @@ export default function SupplierRegistrationForm() {
         submissionData.logoFile = logoFileData;
         submissionData.logoFileName = logoFileName;
       }
-      if (productImagesFileData) {
-        submissionData.productImagesFile = productImagesFileData;
-        submissionData.productImagesFileName = productImagesFileName;
+      if (productImagesFilesData.length > 0) {
+        submissionData.productImagesFiles = productImagesFilesData;
+        submissionData.productImagesFileNames = productImagesFileNames;
       }
       if (productCatalogFileData) {
         submissionData.productCatalogFile = productCatalogFileData;
@@ -278,33 +293,52 @@ export default function SupplierRegistrationForm() {
   };
   
   const handleProductImagesChange = (files: FileList | null) => {
-    console.log("Product images change:", files?.[0]?.name, files?.[0]?.type);
-    setFormData(prev => ({
-      ...prev,
-      productImages: files
-    }));
-    if (files && files[0]) {
+    console.log("Product images change:", files?.length, "files");
+    
+    if (!files || files.length === 0) {
+      setFormData(prev => ({ ...prev, productImages: [] }));
+      setProductImagesPreview([]);
+      return;
+    }
+    
+    // Convert FileList to File array
+    const filesArray = Array.from(files);
+    setFormData(prev => ({ ...prev, productImages: filesArray }));
+    
+    // Read all files for preview
+    const previews: string[] = [];
+    let completed = 0;
+    
+    filesArray.forEach((file, index) => {
       try {
         const reader = new FileReader();
         reader.onloadend = () => {
-          console.log("Product images preview loaded");
-          setProductImagesPreview([reader.result as string]);
+          console.log(`Product image ${index + 1} preview loaded`);
+          previews[index] = reader.result as string;
+          completed++;
+          
+          if (completed === filesArray.length) {
+            setProductImagesPreview(previews);
+          }
         };
         reader.onerror = () => {
-          console.error("Failed to read product images file");
-          toast({
-            title: "שגיאה",
-            description: "שגיאה בקריאת קובץ התמונות",
-            variant: "destructive"
-          });
+          console.error(`Failed to read product image ${index + 1}`);
+          completed++;
+          
+          if (completed === filesArray.length) {
+            setProductImagesPreview(previews.filter(p => p));
+            toast({
+              title: "אזהרה",
+              description: `שגיאה בקריאת חלק מהקבצים`,
+              variant: "destructive"
+            });
+          }
         };
-        reader.readAsDataURL(files[0]);
+        reader.readAsDataURL(file);
       } catch (error) {
         console.error("Error in handleProductImagesChange:", error);
       }
-    } else {
-      setProductImagesPreview([]);
-    }
+    });
   };
   if (submitted) {
     return <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -533,8 +567,8 @@ export default function SupplierRegistrationForm() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>תמונות</Label>
-                    <FileUploadZone accept="image/*" value={formData.productImages} onChange={handleProductImagesChange} preview={productImagesPreview} maxSize={10} />
+                    <Label>תמונות (ניתן להעלות עד 10 תמונות)</Label>
+                    <FileUploadZone accept="image/*" multiple={true} value={null} onChange={handleProductImagesChange} preview={productImagesPreview} maxSize={10} />
                     {errors.productImages && <p className="text-destructive text-sm">{errors.productImages}</p>}
                   </div>
 

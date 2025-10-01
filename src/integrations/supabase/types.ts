@@ -32,7 +32,7 @@ export type Database = {
           product_catalog_drive_link: string | null
           product_catalog_text: string | null
           product_catalog_url: string | null
-          product_images_url: string | null
+          product_images_url: string[] | null
           status: string
           user_id: string | null
           website: string | null
@@ -54,7 +54,7 @@ export type Database = {
           product_catalog_drive_link?: string | null
           product_catalog_text?: string | null
           product_catalog_url?: string | null
-          product_images_url?: string | null
+          product_images_url?: string[] | null
           status?: string
           user_id?: string | null
           website?: string | null
@@ -76,7 +76,7 @@ export type Database = {
           product_catalog_drive_link?: string | null
           product_catalog_text?: string | null
           product_catalog_url?: string | null
-          product_images_url?: string | null
+          product_images_url?: string[] | null
           status?: string
           user_id?: string | null
           website?: string | null

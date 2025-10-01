@@ -23,8 +23,8 @@ const supplierSchema = z.object({
   mainAddress: z.string().trim().min(1, "Main address is required").max(500, "Main address text too long"),
   logoFile: z.string().nullable().optional(),
   logoFileName: z.string().nullable().optional(),
-  productImagesFile: z.string().nullable().optional(),
-  productImagesFileName: z.string().nullable().optional(),
+  productImagesFiles: z.array(z.string()).optional().default([]),
+  productImagesFileNames: z.array(z.string()).optional().default([]),
   productCatalogType: z.enum(["text", "file", "drive", ""]).optional(),
   productCatalogText: z.string().trim().max(5000, "Product catalog text too long").optional().or(z.literal("")),
   productCatalogFile: z.string().nullable().optional(),
@@ -47,8 +47,8 @@ const fieldNameMapping: Record<string, string> = {
   mainAddress: "כתובת מרכזית",
   logoFile: "קובץ לוגו",
   logoFileName: "שם קובץ לוגו",
-  productImagesFile: "קובץ תמונות מוצרים",
-  productImagesFileName: "שם קובץ תמונות",
+  productImagesFiles: "קבצי תמונות מוצרים",
+  productImagesFileNames: "שמות קבצי תמונות",
   productCatalogText: "תיאור מוצרים",
   productCatalogFile: "קובץ קטלוג",
   productCatalogFileName: "שם קובץ קטלוג",
@@ -190,7 +190,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Received form submission for:", formData.businessName);
 
     let logoUrl = null;
-    let productImagesUrl = null;
+    const productImageUrls: string[] = [];
     let productCatalogUrl = null;
 
     // Upload logo if provided
@@ -234,43 +234,47 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Upload product images if provided
-    if (formData.productImagesFile && formData.productImagesFileName) {
-      console.log("Uploading product images:", formData.productImagesFileName);
+    if (formData.productImagesFiles && formData.productImagesFiles.length > 0) {
+      console.log(`Uploading ${formData.productImagesFiles.length} product images`);
       
-      // Validate file size
-      if (!validateFileSize(formData.productImagesFile)) {
-        throw new Error("Product images file size exceeds 5MB limit");
+      for (let i = 0; i < formData.productImagesFiles.length; i++) {
+        const imageFile = formData.productImagesFiles[i];
+        const imageFileName = formData.productImagesFileNames?.[i] || `image-${i}.jpg`;
+        
+        // Validate file size
+        if (!validateFileSize(imageFile)) {
+          throw new Error(`Product image ${i + 1} exceeds 5MB limit`);
+        }
+        
+        // Validate MIME type
+        const { valid: validMime, mimeType } = validateFileMimeType(imageFile);
+        if (!validMime) {
+          throw new Error(`Invalid file type for product image ${i + 1}. Allowed: ${ALLOWED_MIME_TYPES.join(", ")}`);
+        }
+        
+        const imagesBuffer = Uint8Array.from(atob(imageFile.split(',')[1]), c => c.charCodeAt(0));
+        const sanitizedFileName = imageFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const imagesPath = `${Date.now()}-${i}-${sanitizedFileName}`;
+        
+        const { error: imagesError } = await supabase.storage
+          .from("supplier-products")
+          .upload(imagesPath, imagesBuffer, {
+            contentType: mimeType || "image/jpeg",
+            upsert: false
+          });
+    
+        if (imagesError) {
+          console.error(`Product image ${i + 1} upload error:`, imagesError);
+          throw new Error(`Product image ${i + 1} upload failed: ${imagesError.message}`);
+        }
+    
+        const { data: { publicUrl } } = supabase.storage
+          .from("supplier-products")
+          .getPublicUrl(imagesPath);
+        
+        productImageUrls.push(publicUrl);
+        console.log(`Product image ${i + 1} uploaded:`, publicUrl);
       }
-      
-      // Validate MIME type
-      const { valid: validMime, mimeType } = validateFileMimeType(formData.productImagesFile);
-      if (!validMime) {
-        throw new Error(`Invalid product images file type. Allowed types: ${ALLOWED_MIME_TYPES.join(", ")}`);
-      }
-      
-      const imagesBuffer = Uint8Array.from(atob(formData.productImagesFile.split(',')[1]), c => c.charCodeAt(0));
-      // Sanitize filename: remove special characters
-      const sanitizedFileName = formData.productImagesFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const imagesPath = `${Date.now()}-${sanitizedFileName}`;
-      
-      const { data: imagesData, error: imagesError } = await supabase.storage
-        .from("supplier-products")
-        .upload(imagesPath, imagesBuffer, {
-          contentType: mimeType || "image/jpeg",
-          upsert: false
-        });
-
-      if (imagesError) {
-        console.error("Product images upload error:", imagesError);
-        throw new Error(`Product images upload failed: ${imagesError.message}`);
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("supplier-products")
-        .getPublicUrl(imagesPath);
-      
-      productImagesUrl = publicUrl;
-      console.log("Product images uploaded successfully:", productImagesUrl);
     }
 
     // Upload product catalog if provided
@@ -329,7 +333,7 @@ const handler = async (req: Request): Promise<Response> => {
         instagram: formData.instagram || null,
         main_address: formData.mainAddress || null,
         logo_url: logoUrl,
-        product_images_url: productImagesUrl,
+        product_images_url: productImageUrls.length > 0 ? productImageUrls : null,
         product_catalog_text: formData.productCatalogText || null,
         product_catalog_url: productCatalogUrl,
         product_catalog_drive_link: formData.productCatalogDriveLink || null,
@@ -364,7 +368,12 @@ const handler = async (req: Request): Promise<Response> => {
       <p>${escapeHtml(formData.about)}</p>
       ${formData.productCatalogText ? `<h2>תיאור מוצרים:</h2><p>${escapeHtml(formData.productCatalogText)}</p>` : ""}
       ${logoUrl ? `<p><strong>לוגו:</strong> <a href="${escapeHtml(logoUrl)}">צפה בלוגו</a></p>` : ""}
-      ${productImagesUrl ? `<p><strong>תמונות מוצרים:</strong> <a href="${escapeHtml(productImagesUrl)}">צפה בתמונות</a></p>` : ""}
+      ${productImageUrls.length > 0 ? `
+        <p><strong>תמונות מוצרים:</strong></p>
+        <ul>
+          ${productImageUrls.map((url, idx) => `<li><a href="${escapeHtml(url)}">תמונה ${idx + 1}</a></li>`).join('')}
+        </ul>
+      ` : ""}
       ${productCatalogUrl ? `<p><strong>קטלוג מוצרים (קובץ):</strong> <a href="${escapeHtml(productCatalogUrl)}">צפה בקטלוג</a></p>` : ""}
       ${formData.productCatalogDriveLink ? `<p><strong>קטלוג מוצרים (Google Drive):</strong> <a href="${escapeHtml(formData.productCatalogDriveLink)}">${escapeHtml(formData.productCatalogDriveLink)}</a></p>` : ""}
     `;
