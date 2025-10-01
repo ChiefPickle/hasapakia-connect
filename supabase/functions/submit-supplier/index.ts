@@ -283,7 +283,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { error: emailError } = await resend.emails.send({
       from: "Hasapakia <onboarding@resend.dev>",
-      to: ["ychelly.work@gmail.com"],
+      to: ["ychelly.work@gmail.com", "yakir.rotem@gmail.com", "doron.d.sahar@gmail.com"],
       subject: `ספק חדש נרשם - ${escapeHtml(formData.businessName)}`,
       html: emailHtml,
     });
