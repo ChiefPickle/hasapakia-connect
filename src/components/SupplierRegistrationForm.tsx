@@ -705,7 +705,7 @@ export default function SupplierRegistrationForm() {
                                       value={formData.productCatalogDriveLink}
                                       onChange={e => setFormData({ ...formData, productCatalogDriveLink: e.target.value })}
                                       placeholder="הדבק כאן קישור מ-Google Drive..."
-                                      className="text-left"
+                                      className="text-right"
                                       dir="ltr"
                                     />
                                     <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
