@@ -708,14 +708,14 @@ export default function SupplierRegistrationForm() {
                                       className="text-right"
                                       dir="ltr"
                                     />
-                                    <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
-                                      <p className="font-semibold">💡  Google Drive: כיצד לשתף מ</p>
-                                      <ol className="list-decimal list-inside space-y-0.5">
-                                        <li>-Google Drive פתח את הקובץ ב</li>
-                                        <li> "Share"לחץ על "שתף" או</li>
-                                        <li>העתק את הקישור והדבק כאן</li>
-                                      </ol>
-                                    </div>
+                                   <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
+  <p className="font-semibold">💡  Google Drive: כיצד לשתף מ</p>
+  <ol className="list-decimal list-inside space-y-0.5 rtl">
+    <li className="text-right">-Google Drive פתח את הקובץ ב</li>
+    <li className="text-right">"Share" לחץ על "שתף" או</li>
+    <li className="text-right">העתק את הקישור והדבק כאן</li>
+  </ol>
+</div>
                                   </div>
                                 )}
                               </div>
