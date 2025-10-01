@@ -90,7 +90,11 @@ export default function SupplierRegistrationForm() {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("Form submission started");
+    
     if (!validateForm()) {
+      console.log("Form validation failed");
       toast({
         title: "שגיאה בטופס",
         description: "אנא מלא את כל השדות החובה",
@@ -100,30 +104,55 @@ export default function SupplierRegistrationForm() {
     }
     setIsSubmitting(true);
     setErrors({});
+    
     try {
+      console.log("Preparing submission data...");
+      
       // Prepare file data as base64
       let logoFileData = null;
       let logoFileName = null;
       if (formData.logo && formData.logo[0]) {
+        console.log("Preparing logo:", formData.logo[0].name, formData.logo[0].type, formData.logo[0].size);
         logoFileData = logoPreview;
         logoFileName = formData.logo[0].name;
       }
+      
       let productImagesFileData = null;
       let productImagesFileName = null;
       if (formData.productImages && formData.productImages[0]) {
+        console.log("Preparing product images:", formData.productImages[0].name, formData.productImages[0].type, formData.productImages[0].size);
         productImagesFileData = productImagesPreview[0];
         productImagesFileName = formData.productImages[0].name;
       }
+      
       let productCatalogFileData = null;
       let productCatalogFileName = null;
       if (formData.productCatalogFile && formData.productCatalogFile[0]) {
-        const reader = new FileReader();
-        const fileData = await new Promise<string>(resolve => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(formData.productCatalogFile![0]);
-        });
-        productCatalogFileData = fileData;
-        productCatalogFileName = formData.productCatalogFile[0].name;
+        console.log("Reading product catalog file:", formData.productCatalogFile[0].name, formData.productCatalogFile[0].type, formData.productCatalogFile[0].size);
+        try {
+          const reader = new FileReader();
+          const fileData = await new Promise<string>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error("File reading timeout"));
+            }, 30000);
+            
+            reader.onloadend = () => {
+              clearTimeout(timeout);
+              resolve(reader.result as string);
+            };
+            reader.onerror = () => {
+              clearTimeout(timeout);
+              reject(new Error("Failed to read catalog file"));
+            };
+            reader.readAsDataURL(formData.productCatalogFile![0]);
+          });
+          productCatalogFileData = fileData;
+          productCatalogFileName = formData.productCatalogFile[0].name;
+          console.log("Product catalog file read successfully");
+        } catch (error) {
+          console.error("Error reading product catalog file:", error);
+          throw new Error("Failed to process product catalog file. Please try again.");
+        }
       }
 
       // Transform categories if "אחר" is selected with text
@@ -132,6 +161,8 @@ export default function SupplierRegistrationForm() {
         submittedCategories = formData.categories.map(cat => cat === "אחר" ? `אחר: ${otherCategory.trim()}` : cat);
       }
 
+      console.log("Submitting to edge function...");
+      
       // Call the edge function
       const response = await fetch("https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier", {
         method: "POST",
@@ -161,21 +192,27 @@ export default function SupplierRegistrationForm() {
           productCatalogDriveLink: formData.productCatalogDriveLink
         })
       });
+      
       const result = await response.json();
+      console.log("Edge function response:", result);
+      
       if (result.success) {
+        console.log("Form submitted successfully");
         setSubmitted(true);
         window.scrollTo({
           top: 0,
           behavior: "smooth"
         });
       } else {
+        console.error("Submission failed:", result.error, result.details);
         throw new Error(result.error || "Submission failed");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting form:", error);
+      const errorMessage = error.message || "שגיאה בשליחת הטופס. אנא נסה שוב.";
       toast({
         title: "שגיאה",
-        description: "שגיאה בשליחת הטופס. אנא נסה שוב.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -183,27 +220,60 @@ export default function SupplierRegistrationForm() {
     }
   };
   const handleLogoChange = (files: FileList | null) => {
+    console.log("Logo change:", files?.[0]?.name, files?.[0]?.type);
     setFormData(prev => ({
       ...prev,
       logo: files
     }));
     if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoPreview(reader.result as string);
-      reader.readAsDataURL(files[0]);
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          console.log("Logo preview loaded");
+          setLogoPreview(reader.result as string);
+        };
+        reader.onerror = () => {
+          console.error("Failed to read logo file");
+          toast({
+            title: "שגיאה",
+            description: "שגיאה בקריאת קובץ הלוגו",
+            variant: "destructive"
+          });
+        };
+        reader.readAsDataURL(files[0]);
+      } catch (error) {
+        console.error("Error in handleLogoChange:", error);
+      }
     } else {
       setLogoPreview("");
     }
   };
+  
   const handleProductImagesChange = (files: FileList | null) => {
+    console.log("Product images change:", files?.[0]?.name, files?.[0]?.type);
     setFormData(prev => ({
       ...prev,
       productImages: files
     }));
     if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProductImagesPreview([reader.result as string]);
-      reader.readAsDataURL(files[0]);
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          console.log("Product images preview loaded");
+          setProductImagesPreview([reader.result as string]);
+        };
+        reader.onerror = () => {
+          console.error("Failed to read product images file");
+          toast({
+            title: "שגיאה",
+            description: "שגיאה בקריאת קובץ התמונות",
+            variant: "destructive"
+          });
+        };
+        reader.readAsDataURL(files[0]);
+      } catch (error) {
+        console.error("Error in handleProductImagesChange:", error);
+      }
     } else {
       setProductImagesPreview([]);
     }

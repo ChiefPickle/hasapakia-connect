@@ -24,6 +24,7 @@ export function FileUploadZone({
 }: FileUploadZoneProps) {
   const [dragActive, setDragActive] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputId = React.useId();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -79,12 +80,12 @@ export function FileUploadZone({
         multiple={multiple}
         onChange={handleChange}
         className="hidden"
-        id={`file-upload-${Math.random()}`}
+        id={inputId}
       />
 
       {files.length === 0 ? (
         <label
-          htmlFor={inputRef.current?.id}
+          htmlFor={inputId}
           className={cn(
             "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
             dragActive
