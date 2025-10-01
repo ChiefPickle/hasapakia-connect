@@ -295,7 +295,7 @@ export default function SupplierRegistrationForm() {
             <CardTitle className="text-4xl font-bold mb-4">
               ברוכים הבאים לאתר הספקיה
             </CardTitle>
-            <CardDescription className="space-y-3 text-base max-w-3xl mx-auto text-right">
+            <CardDescription className="space-y-3 text-base max-w-3xl mx-auto">
               <p>האתר היחיד שניתן למצוא בו את כל ספקי המזון והמשקאות בארץ.</p>
               <p>האתר שבו כל הלקוחות הפוטנציאלים שלכם יוכלו למצוא אתכם וליצור קשר בקלות ובמהירות</p>
               <p className="font-semibold text-primary text-lg">רוצים להצטרף ולהופיע באתר??</p>
