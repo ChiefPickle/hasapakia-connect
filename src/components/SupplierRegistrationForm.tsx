@@ -14,6 +14,7 @@ import logo from "@/assets/hasapakia-logo.png";
 import backgroundImage from "@/assets/supplier-bg.jpg";
 interface FormData {
   businessName: string;
+  companyId: string;
   contactName: string;
   phone: string;
   email: string;
@@ -38,6 +39,7 @@ export default function SupplierRegistrationForm() {
   } = useToast();
   const [formData, setFormData] = useState<FormData>({
     businessName: "",
+    companyId: "",
     contactName: "",
     phone: "",
     email: "",
@@ -138,6 +140,7 @@ export default function SupplierRegistrationForm() {
         },
         body: JSON.stringify({
           businessName: formData.businessName,
+          companyId: formData.companyId,
           contactName: formData.contactName,
           phone: formData.phone,
           email: formData.email,
@@ -242,7 +245,7 @@ export default function SupplierRegistrationForm() {
         </div>
       </div>;
   }
-  return <div className="min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+  return <div className="font-noto-hebrew min-h-screen relative py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 z-0" style={{
       backgroundImage: `url(${backgroundImage})`,
       backgroundSize: "cover",
@@ -267,7 +270,8 @@ export default function SupplierRegistrationForm() {
         <Card className="border-2">
           <CardHeader className="text-center pb-8">
             <CardTitle className="text-4xl font-bold mb-4">
-              ברוכים הבאים לאתר הַסַּפָּקִיָּה
+              <div>ברוכים הבאים לאתר הַסַּפָּקִיָּה</div>
+              <div className="font-bold mt-2">האתר הולך לעלות בזמן הקרוב</div>
             </CardTitle>
             <CardDescription className="text-base max-w-3xl mx-auto">
               <div className="space-y-3">
@@ -297,6 +301,16 @@ export default function SupplierRegistrationForm() {
                       businessName: e.target.value
                     })} />
                       {errors.businessName && <p className="text-destructive text-sm">{errors.businessName}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="companyId">
+                        ח.פ / ע.מ
+                      </Label>
+                      <Input id="companyId" value={formData.companyId} onChange={e => setFormData({
+                      ...formData,
+                      companyId: e.target.value
+                    })} placeholder="הזן מספר ח.פ או ע.מ" />
                     </div>
 
                     <div className="space-y-2">
@@ -412,7 +426,7 @@ export default function SupplierRegistrationForm() {
               {/* Media & Files Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>קבצים ומדיה</CardTitle>
+                  <CardTitle>קבצים ומדיה (כמה שיותר מידע יותר חשיפה)</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
