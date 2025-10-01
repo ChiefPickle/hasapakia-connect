@@ -58,8 +58,14 @@ const fieldNameMapping: Record<string, string> = {
 
 // Allowed MIME types for images and PDFs
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
-const ALLOWED_CATALOG_TYPES = [...ALLOWED_MIME_TYPES, "application/pdf"];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_CATALOG_TYPES = [
+  "text/csv",
+  "text/tab-separated-values",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain", // Some browsers upload CSV/TSV as text/plain
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // HTML escape function to prevent XSS
 function escapeHtml(text: string): string {
@@ -116,6 +122,18 @@ function validateFileSize(base64Data: string): boolean {
   } catch {
     return false;
   }
+}
+
+// Determine MIME type from filename extension as fallback
+function getMimeTypeFromFilename(filename: string): string | null {
+  const ext = filename.toLowerCase().split('.').pop();
+  const extMap: Record<string, string> = {
+    'csv': 'text/csv',
+    'tsv': 'text/tab-separated-values',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  };
+  return extMap[ext || ''] || null;
 }
 
 const corsHeaders = {
@@ -235,6 +253,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Upload product images if provided
     if (formData.productImagesFiles && formData.productImagesFiles.length > 0) {
+      // Enforce max 10 images
+      if (formData.productImagesFiles.length > 10) {
+        throw new Error("Maximum 10 product images allowed");
+      }
       console.log(`Uploading ${formData.productImagesFiles.length} product images`);
       
       for (let i = 0; i < formData.productImagesFiles.length; i++) {
@@ -243,7 +265,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         // Validate file size
         if (!validateFileSize(imageFile)) {
-          throw new Error(`Product image ${i + 1} exceeds 5MB limit`);
+          throw new Error(`Product image ${i + 1} exceeds 10MB limit`);
         }
         
         // Validate MIME type
@@ -283,13 +305,23 @@ const handler = async (req: Request): Promise<Response> => {
       
       // Validate file size
       if (!validateFileSize(formData.productCatalogFile)) {
-        throw new Error("Product catalog file size exceeds 5MB limit");
+        throw new Error("Product catalog file size exceeds 10MB limit");
       }
       
-      // Validate MIME type (allow PDFs and images)
-      const { valid: validMime, mimeType } = validateFileMimeType(formData.productCatalogFile, ALLOWED_CATALOG_TYPES);
+      // Validate MIME type (CSV, TSV, Excel)
+      let { valid: validMime, mimeType } = validateFileMimeType(formData.productCatalogFile, ALLOWED_CATALOG_TYPES);
+      
+      // If MIME validation fails, try by filename extension
       if (!validMime) {
-        throw new Error(`Invalid catalog file type. Allowed types: ${ALLOWED_CATALOG_TYPES.join(", ")}`);
+        const mimeByExtension = getMimeTypeFromFilename(formData.productCatalogFileName);
+        if (mimeByExtension && ALLOWED_CATALOG_TYPES.includes(mimeByExtension)) {
+          validMime = true;
+          mimeType = mimeByExtension;
+        }
+      }
+      
+      if (!validMime) {
+        throw new Error("Invalid catalog file type. Allowed types: CSV, TSV, XLS, XLSX");
       }
       
       const catalogBuffer = Uint8Array.from(atob(formData.productCatalogFile.split(',')[1]), c => c.charCodeAt(0));
@@ -300,7 +332,7 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: catalogData, error: catalogError } = await supabase.storage
         .from("supplier-products")
         .upload(catalogPath, catalogBuffer, {
-          contentType: mimeType || "application/pdf",
+          contentType: mimeType || "text/csv",
           upsert: false
         });
 

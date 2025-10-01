@@ -34,6 +34,26 @@ interface FormData {
 }
 const categories = ["חומרי גלם יבשים", "ירקות, ירוקים, פירות", "בשר, עוף, דגים", "גבינות וחלב", "משקאות, מיצים, שייקים", "קפה ותה", "אלכוהול, יין, בירות", "קונדיטוריה, אפייה, גלידה", "לחמים ומאפים", "מתוקים וקינוחים", "מוצרי מעדניה", "אוכל מוכן וקייטרינג", "כלי אריזה וחומרי ניקוי", "ציוד מטבח ובר", "כלי בית", "אחר"];
 const activityAreas = ["צפון", "מרכז", "דרום", "שפלה", "השרון", "כל הארץ"];
+
+// Utility function to convert File to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    const timeout = setTimeout(() => {
+      reject(new Error("File reading timeout"));
+    }, 30000);
+    reader.onloadend = () => {
+      clearTimeout(timeout);
+      resolve(reader.result as string);
+    };
+    reader.onerror = () => {
+      clearTimeout(timeout);
+      reject(new Error(`Failed to read file: ${file.name}`));
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function SupplierRegistrationForm() {
   const {
     toast
@@ -144,20 +164,24 @@ export default function SupplierRegistrationForm() {
       let logoFileName = null;
       if (formData.logo && formData.logo[0]) {
         console.log("Preparing logo:", formData.logo[0].name, formData.logo[0].type, formData.logo[0].size);
-        logoFileData = logoPreview;
+        logoFileData = await fileToBase64(formData.logo[0]);
         logoFileName = formData.logo[0].name;
       }
+
+      // Convert product images to base64
       const productImagesFilesData: string[] = [];
       const productImagesFileNames: string[] = [];
       if (formData.productImages && formData.productImages.length > 0) {
         console.log(`Preparing ${formData.productImages.length} product images`);
         const filesArray = Array.from(formData.productImages);
-        for (let i = 0; i < filesArray.length; i++) {
-          const file = filesArray[i];
-          const preview = productImagesPreview[i];
-          if (preview) {
-            productImagesFilesData.push(preview);
+        for (const file of filesArray) {
+          try {
+            const base64 = await fileToBase64(file);
+            productImagesFilesData.push(base64);
             productImagesFileNames.push(file.name);
+          } catch (error) {
+            console.error(`Failed to read image ${file.name}:`, error);
+            throw new Error(`Failed to read image: ${file.name}`);
           }
         }
       }
