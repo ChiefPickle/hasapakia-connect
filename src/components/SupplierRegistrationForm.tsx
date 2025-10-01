@@ -708,7 +708,7 @@ export default function SupplierRegistrationForm() {
                                       className="text-left"
                                       dir="ltr"
                                     />
-                                    <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded">
+                                    <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
                                       <p className="font-semibold">💡 כיצד לשתף מ-Google Drive:</p>
                                       <ol className="list-decimal list-inside space-y-0.5">
                                         <li>פתח את הקובץ ב-Google Drive</li>
