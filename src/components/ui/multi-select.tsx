@@ -91,13 +91,13 @@ export function MultiSelect({
                 <CommandItem
                   key={option}
                   onSelect={() => handleSelect(option)}
-                  className="cursor-pointer flex flex-row-reverse justify-end"
+                  className="cursor-pointer flex items-center justify-between"
                 >
+                  <span>{option}</span>
                   <Checkbox
                     checked={selected.includes(option)}
-                    className="ml-2"
+                    className="mr-2"
                   />
-                  {option}
                 </CommandItem>
               ))}
             </CommandGroup>

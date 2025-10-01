@@ -79,6 +79,7 @@ export default function SupplierRegistrationForm() {
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [productImagesPreview, setProductImagesPreview] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otherCategory, setOtherCategory] = useState<string>("");
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -444,6 +445,18 @@ export default function SupplierRegistrationForm() {
                     />
                     {errors.categories && (
                       <p className="text-destructive text-sm">{errors.categories}</p>
+                    )}
+                    {formData.categories.includes("אחר") && (
+                      <div className="mt-4">
+                        <Label htmlFor="otherCategory">פרט את הקטגוריה</Label>
+                        <Input
+                          id="otherCategory"
+                          value={otherCategory}
+                          onChange={(e) => setOtherCategory(e.target.value)}
+                          placeholder="הזן את שם הקטגוריה..."
+                          className="mt-2"
+                        />
+                      </div>
                     )}
                   </div>
 
