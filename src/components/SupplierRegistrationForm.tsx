@@ -459,11 +459,11 @@ export default function SupplierRegistrationForm() {
               productCatalogType: value
             })} className="space-y-3">
                 <div className="flex items-center justify-end space-x-4 space-x-reverse">
-                  <Label htmlFor="catalog-text" className="text-base font-medium cursor-pointer">תיאור מוצרים (טקסט)</Label>
+                  <Label htmlFor="catalog-text" className="text-base font-medium cursor-pointer"> תיאור מוצרים (טקסט)  </Label>
                   <RadioGroupItem value="text" id="catalog-text" />
                 </div>
                 <div className="flex items-center justify-end space-x-4 space-x-reverse">
-                  <Label htmlFor="catalog-file" className="text-base font-medium cursor-pointer">העלאת קטלוג (קובץ PDF/תמונה או לינק ל־Google Drive)</Label>
+                  <Label htmlFor="catalog-file" className="text-base font-medium cursor-pointer">העלאת קטלוג (Google Drive)  </Label>
                   <RadioGroupItem value="file" id="catalog-file" />
                 </div>
               </RadioGroup>
