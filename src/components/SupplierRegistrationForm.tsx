@@ -708,20 +708,22 @@ export default function SupplierRegistrationForm() {
                                       className="text-right"
                                       dir="ltr"
                                     />
-                               <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
+<div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded text-right">
   <p className="font-semibold">💡  Google Drive: כיצד לשתף מ</p>
-  <ol className="list-decimal list-inside space-y-0.5">
-    <li className="flex flex-row-reverse justify-between">
+  <ol className="list-none counter-reset my-counter space-y-1">
+    <li className="flex justify-between items-start">
       <span className="text-right">-Google Drive פתח את הקובץ ב</span>
-      <span className="mr-2">1.</span>
+      <span className="ml-2 before:counter-increment-my-counter before:content-[counter(my-counter)]">
+        {/* Number will appear here */}
+      </span>
     </li>
-    <li className="flex flex-row-reverse justify-between">
+    <li className="flex justify-between items-start">
       <span className="text-right">"Share" לחץ על "שתף" או</span>
-      <span className="mr-2">2.</span>
+      <span className="ml-2 before:counter-increment-my-counter before:content-[counter(my-counter)]"></span>
     </li>
-    <li className="flex flex-row-reverse justify-between">
+    <li className="flex justify-between items-start">
       <span className="text-right">העתק את הקישור והדבק כאן</span>
-      <span className="mr-2">3.</span>
+      <span className="ml-2 before:counter-increment-my-counter before:content-[counter(my-counter)]"></span>
     </li>
   </ol>
 </div>
