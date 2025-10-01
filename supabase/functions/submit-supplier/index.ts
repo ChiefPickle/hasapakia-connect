@@ -392,6 +392,80 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Email sent successfully");
     }
 
+    // Send confirmation email to customer
+    console.log("Sending confirmation email to customer:", formData.email);
+
+    const customerEmailHtml = `
+      <!DOCTYPE html>
+      <html dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1a472a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+          .success-icon { font-size: 48px; text-align: center; margin: 20px 0; }
+          .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #1a472a; }
+          .footer { text-align: center; color: #666; margin-top: 30px; font-size: 12px; }
+          h1 { margin: 0; font-size: 24px; }
+          h2 { color: #1a472a; font-size: 20px; margin-top: 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 הטופס נקלט בהצלחה!</h1>
+          </div>
+          <div class="content">
+            <div class="success-icon">✅</div>
+            
+            <h2>שלום ${escapeHtml(formData.contactName)},</h2>
+            
+            <p>תודה רבה על ההרשמה למאגר הספקים של Hasapakia!</p>
+            
+            <div class="info-box">
+              <p><strong>קיבלנו את הפרטים שלך:</strong></p>
+              <ul style="list-style: none; padding: 0;">
+                <li>📌 עסק: ${escapeHtml(formData.businessName)}</li>
+                <li>👤 איש קשר: ${escapeHtml(formData.contactName)}</li>
+                <li>📧 אימייל: ${escapeHtml(formData.email)}</li>
+                <li>📱 טלפון: ${escapeHtml(formData.phone)}</li>
+              </ul>
+            </div>
+            
+            <p><strong>מה קורה עכשיו?</strong></p>
+            <ol>
+              <li>הצוות שלנו בוחן את הפרטים שהגשת</li>
+              <li>אנחנו עשויים לחזור אליך עם שאלות נוספות</li>
+              <li>ברגע שהספק יאושר, תקבל הודעה נוספת</li>
+            </ol>
+            
+            <p>אם יש לך שאלות, אל תהסס לפנות אלינו.</p>
+            
+            <div class="footer">
+              <p>Hasapakia - המקום שבו קולינריה פוגשת איכות</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const { error: customerEmailError } = await resend.emails.send({
+      from: "Hasapakia <onboarding@resend.dev>",
+      to: [formData.email],
+      subject: "✅ הטופס שלך נקלט בהצלחה - Hasapakia",
+      html: customerEmailHtml,
+    });
+
+    if (customerEmailError) {
+      console.error("Error sending confirmation email to customer:", customerEmailError);
+      // Don't throw error - admin email was sent successfully
+    } else {
+      console.log("Confirmation email sent successfully to customer");
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

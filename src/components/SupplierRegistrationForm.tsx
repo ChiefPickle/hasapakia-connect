@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,6 +63,15 @@ export default function SupplierRegistrationForm() {
   const [productImagesPreview, setProductImagesPreview] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otherCategory, setOtherCategory] = useState<string>("");
+  const [catalogFileSource, setCatalogFileSource] = useState<"local" | "drive" | "">("");
+
+  // Reset catalogFileSource when productCatalogType changes
+  useEffect(() => {
+    if (formData.productCatalogType !== "file") {
+      setCatalogFileSource("");
+    }
+  }, [formData.productCatalogType]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.businessName.trim()) newErrors.businessName = "שדה חובה";
@@ -88,8 +98,16 @@ export default function SupplierRegistrationForm() {
         newErrors.productImages = "ניתן להעלות עד 10 תמונות";
       }
     }
-    if (formData.productCatalogFile && formData.productCatalogFile[0] && formData.productCatalogFile[0].size > 10 * 1024 * 1024) {
-      newErrors.productCatalogFile = "גודל הקובץ חורג מ-10MB";
+    if (formData.productCatalogType === "file") {
+      if (catalogFileSource === "") {
+        newErrors.productCatalog = "בחר מאיפה להעלות את הקובץ";
+      } else if (catalogFileSource === "local" && !formData.productCatalogFile) {
+        newErrors.productCatalog = "נא להעלות קובץ או לבחור Google Drive";
+      } else if (catalogFileSource === "drive" && !formData.productCatalogDriveLink) {
+        newErrors.productCatalog = "נא להזין קישור מ-Google Drive";
+      } else if (catalogFileSource === "local" && formData.productCatalogFile && formData.productCatalogFile[0] && formData.productCatalogFile[0].size > 10 * 1024 * 1024) {
+        newErrors.productCatalog = "גודל הקובץ חורג מ-10MB";
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -614,14 +632,97 @@ export default function SupplierRegistrationForm() {
 
                       <div className="flex flex-row-reverse items-start gap-3">
                         <RadioGroupItem value="file" id="catalog-file" className="mt-1" />
-                        <div className="flex-1 space-y-2">
+                        <div className="flex-1 space-y-4">
                           <Label htmlFor="catalog-file" className="cursor-pointer">
                             העלאת קובץ
                           </Label>
-                          {formData.productCatalogType === "file" && <FileUploadZone accept=".pdf,.doc,.docx,.xls,.xlsx" value={formData.productCatalogFile} onChange={files => setFormData({
-                          ...formData,
-                          productCatalogFile: files
-                        })} maxSize={10} />}
+                          
+                          {formData.productCatalogType === "file" && (
+                            <div className="pr-6 space-y-3">
+                              <p className="text-sm text-muted-foreground">בחר מאיפה להעלות את הקובץ:</p>
+                              
+                              <div className="space-y-3 bg-accent/20 p-4 rounded-lg">
+                                {/* Local Device Option */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCatalogFileSource("local");
+                                    setFormData({ ...formData, productCatalogDriveLink: "" });
+                                  }}
+                                  className={cn(
+                                    "w-full p-4 rounded-lg border-2 transition-all text-right",
+                                    catalogFileSource === "local" 
+                                      ? "border-primary bg-primary/5" 
+                                      : "border-border bg-background hover:border-primary/50"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-2xl">💻</div>
+                                    <div className="flex-1">
+                                      <p className="font-semibold">מהמכשיר שלי</p>
+                                      <p className="text-xs text-muted-foreground">העלה קובץ מהמחשב או הטלפון שלך</p>
+                                    </div>
+                                  </div>
+                                </button>
+                                
+                                {catalogFileSource === "local" && (
+                                  <div className="pr-4 animate-in slide-in-from-top-2">
+                                    <FileUploadZone 
+                                      accept=".pdf,.doc,.docx,.xls,.xlsx" 
+                                      value={formData.productCatalogFile} 
+                                      onChange={files => setFormData({ ...formData, productCatalogFile: files })} 
+                                      maxSize={10} 
+                                    />
+                                  </div>
+                                )}
+                                
+                                {/* Google Drive Option */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCatalogFileSource("drive");
+                                    setFormData({ ...formData, productCatalogFile: null });
+                                  }}
+                                  className={cn(
+                                    "w-full p-4 rounded-lg border-2 transition-all text-right",
+                                    catalogFileSource === "drive" 
+                                      ? "border-primary bg-primary/5" 
+                                      : "border-border bg-background hover:border-primary/50"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-2xl">☁️</div>
+                                    <div className="flex-1">
+                                      <p className="font-semibold">מ-Google Drive</p>
+                                      <p className="text-xs text-muted-foreground">שתף קישור לקובץ מ-Google Drive</p>
+                                    </div>
+                                  </div>
+                                </button>
+                                
+                                {catalogFileSource === "drive" && (
+                                  <div className="pr-4 space-y-2 animate-in slide-in-from-top-2">
+                                    <Input 
+                                      value={formData.productCatalogDriveLink}
+                                      onChange={e => setFormData({ ...formData, productCatalogDriveLink: e.target.value })}
+                                      placeholder="הדבק כאן קישור מ-Google Drive..."
+                                      className="text-left"
+                                      dir="ltr"
+                                    />
+                                    <div className="text-xs text-muted-foreground space-y-1 bg-blue-50 p-3 rounded">
+                                      <p className="font-semibold">💡 כיצד לשתף מ-Google Drive:</p>
+                                      <ol className="list-decimal list-inside space-y-0.5">
+                                        <li>פתח את הקובץ ב-Google Drive</li>
+                                        <li>לחץ על "שתף" או "Share"</li>
+                                        <li>בחר "כל מי שיש לו את הקישור"</li>
+                                        <li>העתק את הקישור והדבק כאן</li>
+                                      </ol>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              {errors.productCatalog && <p className="text-destructive text-sm">{errors.productCatalog}</p>}
+                            </div>
+                          )}
                         </div>
                       </div>
 
