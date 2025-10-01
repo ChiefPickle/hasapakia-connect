@@ -253,10 +253,16 @@ export default function SupplierRegistrationForm() {
     }} />
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/90 to-background/70" />
 
-      <div className="max-w-5xl mx-auto relative z-10">
-        <div className="mb-8 flex justify-start">
-          <img src={logo} alt="הספקיה" className="h-24" />
-        </div>
+      {/* wrapper made relative so logo can overlap the Card */}
+<div className="mb-8 relative overflow-visible">
+  {/* logo: absolute at top-right, shifted up by half its own height */}
+  <img
+    src={logo}
+    alt="הספקיה"
+    aria-hidden="true"
+    className="absolute right-6 top-0 -translate-y-1/2 z-20 w-40 sm:w-48 md:w-56 h-auto drop-shadow-md"
+  />
+
 
         <Card className="border-2">
           <CardHeader className="text-center pb-8">
