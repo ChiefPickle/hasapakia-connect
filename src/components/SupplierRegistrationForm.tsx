@@ -253,22 +253,17 @@ export default function SupplierRegistrationForm() {
     }} />
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/90 to-background/70" />
 
-    {/* wrapper: logo on top, card below with a small gap */}
-<div className="mb-8 flex flex-col items-center">
-  {/* logo */}
-  <img
-    src={logo}
-    alt="הספקיה"
-    className="w-40 sm:w-48 md:w-56 h-auto mb-4 drop-shadow-md"
-  />
+      <div className="max-w-5xl mx-auto relative z-10">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img
+            src={logo}
+            alt="הספקיה"
+            className="w-40 sm:w-48 md:w-56 h-auto drop-shadow-md"
+          />
+        </div>
 
-  {/* card */}
-  <Card className="border-2 relative z-10">
-    {/* card content here */}
-  </Card>
-</div>
-
-
+        {/* Form Card */}
         <Card className="border-2">
           <CardHeader className="text-center pb-8">
             <CardTitle className="text-4xl font-bold mb-4">
