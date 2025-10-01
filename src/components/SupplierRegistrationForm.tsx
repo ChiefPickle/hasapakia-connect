@@ -21,6 +21,8 @@ interface FormData {
   mainAddress: string;
   logo: File | null;
   productImages: File | null;
+  productCatalogText: string;
+  productCatalogFile: File | null;
 }
 
 const categories = [
@@ -58,12 +60,15 @@ export default function SupplierRegistrationForm() {
     mainAddress: "",
     logo: null,
     productImages: null,
+    productCatalogText: "",
+    productCatalogFile: null,
   });
 
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [productImagesPreview, setProductImagesPreview] = useState<string | null>(null);
+  const [productCatalogPreview, setProductCatalogPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
@@ -102,6 +107,9 @@ export default function SupplierRegistrationForm() {
     if (formData.productImages && formData.productImages.size > 10 * 1024 * 1024) {
       newErrors.productImages = "גודל הקובץ חורג מ-10MB";
     }
+    if (formData.productCatalogFile && formData.productCatalogFile.size > 10 * 1024 * 1024) {
+      newErrors.productCatalogFile = "גודל הקובץ חורג מ-10MB";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -133,6 +141,13 @@ export default function SupplierRegistrationForm() {
         productImagesFileName = formData.productImages.name;
       }
 
+      let productCatalogFileData = null;
+      let productCatalogFileName = null;
+      if (formData.productCatalogFile) {
+        productCatalogFileData = productCatalogPreview;
+        productCatalogFileName = formData.productCatalogFile.name;
+      }
+
       // Call the edge function
       const response = await fetch(
         "https://rcvfgxtifjhfzdgodiel.supabase.co/functions/v1/submit-supplier",
@@ -156,6 +171,9 @@ export default function SupplierRegistrationForm() {
             logoFileName: logoFileName,
             productImagesFile: productImagesFileData,
             productImagesFileName: productImagesFileName,
+            productCatalogText: formData.productCatalogText,
+            productCatalogFile: productCatalogFileData,
+            productCatalogFileName: productCatalogFileName,
           }),
         }
       );
@@ -194,7 +212,7 @@ export default function SupplierRegistrationForm() {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "productImages") => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "logo" | "productImages" | "productCatalogFile") => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFormData((prev) => ({
@@ -207,8 +225,10 @@ export default function SupplierRegistrationForm() {
       reader.onloadend = () => {
         if (field === "logo") {
           setLogoPreview(reader.result as string);
-        } else {
+        } else if (field === "productImages") {
           setProductImagesPreview(reader.result as string);
+        } else {
+          setProductCatalogPreview(reader.result as string);
         }
       };
       reader.readAsDataURL(file);
@@ -543,6 +563,67 @@ export default function SupplierRegistrationForm() {
               {errors.productImages && (
                 <p className="text-destructive text-sm">{errors.productImages}</p>
               )}
+            </div>
+
+            {/* Product Catalog */}
+            <div className="space-y-4">
+              <Label className="text-lg">
+                העלו את קטלוג המוצרים שלכם או כתבו תיאור של המוצרים שאתם מוכרים
+              </Label>
+              
+              {/* Text Description */}
+              <div className="space-y-2">
+                <Label htmlFor="productCatalogText" className="text-base text-muted-foreground">
+                  תיאור המוצרים (טקסט)
+                </Label>
+                <Textarea
+                  id="productCatalogText"
+                  value={formData.productCatalogText}
+                  onChange={(e) => setFormData({ ...formData, productCatalogText: e.target.value })}
+                  placeholder="תארו את המוצרים שאתם מספקים..."
+                  className="min-h-32 text-lg"
+                />
+              </div>
+
+              {/* File Upload */}
+              <div className="space-y-2">
+                <Label htmlFor="productCatalogFile" className="text-base text-muted-foreground">
+                  או העלו קטלוג (PDF/תמונה)
+                </Label>
+                <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-smooth cursor-pointer bg-muted/30">
+                  <input
+                    id="productCatalogFile"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleFileChange(e, "productCatalogFile")}
+                    className="hidden"
+                  />
+                  <label htmlFor="productCatalogFile" className="cursor-pointer">
+                    {productCatalogPreview ? (
+                      <div className="space-y-4">
+                        {formData.productCatalogFile?.type.startsWith('image/') ? (
+                          <img src={productCatalogPreview} alt="Catalog preview" className="mx-auto max-h-48 rounded-lg" />
+                        ) : (
+                          <Upload className="mx-auto h-12 w-12 text-primary mb-4" />
+                        )}
+                        <p className="text-base text-muted-foreground">{formData.productCatalogFile?.name}</p>
+                        <p className="text-sm text-primary">לחץ להחלפת הקובץ</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                        <p className="text-base text-muted-foreground mb-2">
+                          לחץ להעלאת קובץ או גרור לכאן
+                        </p>
+                        <p className="text-sm text-muted-foreground">מקסימום 10MB</p>
+                      </>
+                    )}
+                  </label>
+                </div>
+                {errors.productCatalogFile && (
+                  <p className="text-destructive text-sm">{errors.productCatalogFile}</p>
+                )}
+              </div>
             </div>
 
             {/* Submit Button */}

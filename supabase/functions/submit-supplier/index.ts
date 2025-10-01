@@ -24,6 +24,9 @@ const supplierSchema = z.object({
   logoFileName: z.string().optional(),
   productImagesFile: z.string().optional(),
   productImagesFileName: z.string().optional(),
+  productCatalogText: z.string().trim().max(5000, "Product catalog text too long").optional().or(z.literal("")),
+  productCatalogFile: z.string().optional(),
+  productCatalogFileName: z.string().optional(),
 });
 
 // Allowed MIME types for images
