@@ -29,8 +29,9 @@ const supplierSchema = z.object({
   productCatalogFileName: z.string().optional(),
 });
 
-// Allowed MIME types for images
+// Allowed MIME types for images and PDFs
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_CATALOG_TYPES = [...ALLOWED_MIME_TYPES, "application/pdf"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // HTML escape function to prevent XSS
@@ -64,14 +65,14 @@ function checkRateLimit(ip: string): boolean {
 }
 
 // Validate file MIME type from base64 data
-function validateFileMimeType(base64Data: string): { valid: boolean; mimeType: string | null } {
+function validateFileMimeType(base64Data: string, allowedTypes: string[] = ALLOWED_MIME_TYPES): { valid: boolean; mimeType: string | null } {
   try {
     const matches = base64Data.match(/^data:([^;]+);base64,/);
     if (!matches) return { valid: false, mimeType: null };
     
     const mimeType = matches[1];
     return {
-      valid: ALLOWED_MIME_TYPES.includes(mimeType),
+      valid: allowedTypes.includes(mimeType),
       mimeType
     };
   } catch {
@@ -154,6 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     let logoUrl = null;
     let productImagesUrl = null;
+    let productCatalogUrl = null;
 
     // Upload logo if provided
     if (formData.logoFile && formData.logoFileName) {
@@ -235,6 +237,46 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Product images uploaded successfully:", productImagesUrl);
     }
 
+    // Upload product catalog if provided
+    if (formData.productCatalogFile && formData.productCatalogFileName) {
+      console.log("Uploading product catalog:", formData.productCatalogFileName);
+      
+      // Validate file size
+      if (!validateFileSize(formData.productCatalogFile)) {
+        throw new Error("Product catalog file size exceeds 5MB limit");
+      }
+      
+      // Validate MIME type (allow PDFs and images)
+      const { valid: validMime, mimeType } = validateFileMimeType(formData.productCatalogFile, ALLOWED_CATALOG_TYPES);
+      if (!validMime) {
+        throw new Error(`Invalid catalog file type. Allowed types: ${ALLOWED_CATALOG_TYPES.join(", ")}`);
+      }
+      
+      const catalogBuffer = Uint8Array.from(atob(formData.productCatalogFile.split(',')[1]), c => c.charCodeAt(0));
+      // Sanitize filename: remove special characters
+      const sanitizedFileName = formData.productCatalogFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const catalogPath = `${Date.now()}-${sanitizedFileName}`;
+      
+      const { data: catalogData, error: catalogError } = await supabase.storage
+        .from("supplier-products")
+        .upload(catalogPath, catalogBuffer, {
+          contentType: mimeType || "application/pdf",
+          upsert: false
+        });
+
+      if (catalogError) {
+        console.error("Product catalog upload error:", catalogError);
+        throw new Error(`Product catalog upload failed: ${catalogError.message}`);
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("supplier-products")
+        .getPublicUrl(catalogPath);
+      
+      productCatalogUrl = publicUrl;
+      console.log("Product catalog uploaded successfully:", productCatalogUrl);
+    }
+
     // Insert supplier data into database
     const { data: supplierData, error: dbError } = await supabase
       .from("suppliers")
@@ -251,6 +293,8 @@ const handler = async (req: Request): Promise<Response> => {
         main_address: formData.mainAddress || null,
         logo_url: logoUrl,
         product_images_url: productImagesUrl,
+        product_catalog_text: formData.productCatalogText || null,
+        product_catalog_url: productCatalogUrl,
         status: "pending"
       })
       .select()
@@ -280,8 +324,10 @@ const handler = async (req: Request): Promise<Response> => {
       </ul>
       <h2>אודות העסק:</h2>
       <p>${escapeHtml(formData.about)}</p>
+      ${formData.productCatalogText ? `<h2>תיאור מוצרים:</h2><p>${escapeHtml(formData.productCatalogText)}</p>` : ""}
       ${logoUrl ? `<p><strong>לוגו:</strong> <a href="${escapeHtml(logoUrl)}">צפה בלוגו</a></p>` : ""}
       ${productImagesUrl ? `<p><strong>תמונות מוצרים:</strong> <a href="${escapeHtml(productImagesUrl)}">צפה בתמונות</a></p>` : ""}
+      ${productCatalogUrl ? `<p><strong>קטלוג מוצרים:</strong> <a href="${escapeHtml(productCatalogUrl)}">צפה בקטלוג</a></p>` : ""}
     `;
 
     const { error: emailError } = await resend.emails.send({

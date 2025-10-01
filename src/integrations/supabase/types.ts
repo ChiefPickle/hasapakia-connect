@@ -28,6 +28,8 @@ export type Database = {
           logo_url: string | null
           main_address: string | null
           phone: string
+          product_catalog_text: string | null
+          product_catalog_url: string | null
           product_images_url: string | null
           status: string
           user_id: string | null
@@ -46,6 +48,8 @@ export type Database = {
           logo_url?: string | null
           main_address?: string | null
           phone: string
+          product_catalog_text?: string | null
+          product_catalog_url?: string | null
           product_images_url?: string | null
           status?: string
           user_id?: string | null
@@ -64,6 +68,8 @@ export type Database = {
           logo_url?: string | null
           main_address?: string | null
           phone?: string
+          product_catalog_text?: string | null
+          product_catalog_url?: string | null
           product_images_url?: string | null
           status?: string
           user_id?: string | null
