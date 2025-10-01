@@ -81,29 +81,43 @@ export function MultiSelect({
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start" dir="rtl">
-        <Command>
-          <CommandInput placeholder="חפש..." className="h-9" />
-          <CommandList>
-            <CommandEmpty>לא נמצאו תוצאות</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option}
-                  onSelect={() => handleSelect(option)}
-                  className="cursor-pointer flex flex-row-reverse items-center gap-2 data-[selected=true]:bg-transparent"
-                >
-                  <Checkbox
-                    checked={selected.includes(option)}
-                    className="h-4 w-4 shrink-0 pointer-events-none"
-                  />
-                  <span className="text-right flex-1">{option}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
+   <PopoverContent className="w-full p-0" align="start" dir="rtl">
+  <Command>
+    <CommandInput placeholder="חפש..." className="h-9" />
+    <CommandList>
+      <CommandEmpty>לא נמצאו תוצאות</CommandEmpty>
+
+      <CommandGroup>
+        {options.map((option) => (
+          <CommandItem
+            key={option}
+            onSelect={() => handleSelect(option)} // toggle logic expected in handleSelect
+            className="cursor-pointer flex flex-row-reverse items-center gap-2 px-3 py-2 hover:bg-muted/60 rounded-md"
+            aria-checked={selected.includes(option)}
+            role="option"
+          >
+            {/* Checkbox on the right visually because of flex-row-reverse */}
+            <Checkbox
+              checked={selected.includes(option)}
+              onClick={(e) => {
+                e.stopPropagation();        // prevent CommandItem default selection double-fire
+                handleSelect(option);       // toggle selection when clicking checkbox
+              }}
+              className="h-4 w-4 shrink-0"
+              aria-label={`בחר ${option}`}
+            />
+
+            {/* Label (right-aligned text) */}
+            <span className="text-right flex-1" dir="rtl">
+              {option}
+            </span>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </CommandList>
+  </Command>
+</PopoverContent>
+
     </Popover>
   );
 }
