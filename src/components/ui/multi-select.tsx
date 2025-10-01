@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -90,13 +91,11 @@ export function MultiSelect({
                 <CommandItem
                   key={option}
                   onSelect={() => handleSelect(option)}
-                  className="cursor-pointer"
+                  className="cursor-pointer flex flex-row-reverse justify-end"
                 >
-                  <Check
-                    className={cn(
-                      "ml-2 h-4 w-4",
-                      selected.includes(option) ? "opacity-100" : "opacity-0"
-                    )}
+                  <Checkbox
+                    checked={selected.includes(option)}
+                    className="ml-2"
                   />
                   {option}
                 </CommandItem>

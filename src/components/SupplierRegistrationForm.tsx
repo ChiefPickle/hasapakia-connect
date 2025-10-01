@@ -531,7 +531,7 @@ export default function SupplierRegistrationForm() {
                       }
                       className="space-y-4 text-right"
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex flex-row-reverse items-start gap-3">
                         <RadioGroupItem value="text" id="catalog-text" className="mt-1" />
                         <div className="flex-1 space-y-2">
                           <Label htmlFor="catalog-text" className="cursor-pointer">
@@ -553,7 +553,7 @@ export default function SupplierRegistrationForm() {
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-3">
+                      <div className="flex flex-row-reverse items-start gap-3">
                         <RadioGroupItem value="file" id="catalog-file" className="mt-1" />
                         <div className="flex-1 space-y-2">
                           <Label htmlFor="catalog-file" className="cursor-pointer">
@@ -572,7 +572,7 @@ export default function SupplierRegistrationForm() {
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-3">
+                      <div className="flex flex-row-reverse items-start gap-3">
                         <RadioGroupItem value="drive" id="catalog-drive" className="mt-1" />
                         <div className="flex-1 space-y-2">
                           <Label htmlFor="catalog-drive" className="cursor-pointer">
