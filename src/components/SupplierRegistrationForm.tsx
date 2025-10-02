@@ -437,7 +437,7 @@ export default function SupplierRegistrationForm() {
 
         {/* Form Card */}
         <Card className="border-2">
-          <CardHeader className="text-center pb-8">
+          <CardHeader className="text-right pb-8">
             <CardTitle className="text-4xl font-bold mb-4">
               <div>ברוכים הבאים לאתר הַסַּפָּקִיָּה</div>
               <div className="font-bold mt-2">האתר הולך לעלות בזמן הקרוב</div>
