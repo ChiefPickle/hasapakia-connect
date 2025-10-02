@@ -440,7 +440,7 @@ export default function SupplierRegistrationForm() {
           <CardHeader className="text-center pb-8">
             <CardTitle className="text-4xl font-bold mb-4">
               <div>ברוכים הבאים לאתר הַסַּפָּקִיָּה</div>
-              <div className="font-bold mt-2">האתר הולך לעלות בזמן הקרוב</div>
+              <div className="font-bold mt-2">האתר! הולך לעלות בזמן הקרוב</div>
             </CardTitle>
             <CardDescription className="text-base max-w-3xl mx-auto">
               <div className="space-y-3">
