@@ -517,7 +517,7 @@ export default function SupplierRegistrationForm() {
 
                     <div className="space-y-2">
                       <Label htmlFor="mainAddress">
-                        כתובת מרכזית <span className="text-destructive">*</span>
+                        כתובת <span className="text-destructive">*</span>
                       </Label>
                       <Input id="mainAddress" value={formData.mainAddress} onChange={e => setFormData({
                       ...formData,
